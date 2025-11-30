@@ -1,0 +1,20 @@
+<a
+  [routerLink]="['/products', product.id]"
+  class="block bg-white rounded-2xl shadow overflow-hidden hover:shadow-lg transition"
+>
+  <img [src]="product.image" alt="{{product.title}}" class="w-full h-44 object-cover" />
+
+  <div class="p-4">
+    <div class="flex items-start justify-between">
+      <div>
+        <h3 class="font-semibold text-lg">{{ product.title }}</h3>
+        <p class="text-sm text-gray-500">{{ product.location }}</p>
+      </div>
+
+      <div class="text-right">
+        <div class="text-green-600 font-bold">₹{{ product.price }}</div>
+        <div class="text-xs text-gray-400">per kg</div>
+      </div>
+    </div>
+  </div>
+</a>

@@ -1,0 +1,70 @@
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <!-- Back button -->
+  <button
+    routerLink="/products"
+    class="mb-6 px-4 py-2 border rounded-lg hover:bg-gray-100"
+  >
+    ← Back to products
+  </button>
+
+  <div class="grid md:grid-cols-2 gap-10">
+
+    <!-- Image -->
+    <div>
+      <img
+        [src]="product.image"
+        class="w-full rounded-xl shadow"
+      />
+    </div>
+
+    <!-- Product Info -->
+    <div>
+      <h1 class="text-3xl font-bold">{{ product.title }}</h1>
+
+      <div class="text-green-600 text-2xl mt-2 font-bold">
+        ₹{{ product.price }} / kg
+      </div>
+
+      <p class="text-gray-600 mt-3">
+        Category: <span class="font-medium">{{ product.category }}</span>
+      </p>
+
+      <p class="text-gray-600">
+        Location: <span class="font-medium">{{ product.location }}</span>
+      </p>
+
+      <p class="mt-5 text-gray-700 leading-7">
+        Fresh and organic {{ product.title }} directly sourced from local farmers.
+        Grown naturally without harmful chemicals, hand-picked and delivered with care.
+      </p>
+
+      <button
+        class="mt-6 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+      >
+        Contact Farmer
+      </button>
+      <button
+  (click)="addToCart()"
+  class="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+>
+  Add to Cart
+</button>
+
+    </div>
+
+  </div>
+
+  <!-- Similar Products -->
+  <div class="mt-12">
+    <h2 class="text-2xl font-bold mb-4">Similar Products</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <app-product-card
+        *ngFor="let p of allProducts"
+        [product]="p"
+      ></app-product-card>
+    </div>
+  </div>
+
+</div>

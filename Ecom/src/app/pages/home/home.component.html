@@ -1,0 +1,77 @@
+<!-- HERO SECTION -->
+<section class="bg-green-50">
+  <div class="max-w-7xl mx-auto px-4 py-12 lg:py-20">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+
+      <!-- Left Text -->
+      <div>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900">
+          Fresh produce from local farmers,
+          <span class="text-green-600">delivered to your doorstep</span>
+        </h1>
+
+        <p class="mt-4 text-gray-600 text-lg">
+          Connect with farmers, discover fresh and organic produce,
+          and buy directly from the source — fair pricing, transparent sourcing.
+        </p>
+
+        <div class="mt-6 flex gap-3">
+          <input
+            type="text"
+            class="flex-1 px-4 py-3 rounded-lg border focus:outline-none"
+            placeholder="Search for products or locations"
+          />
+
+          <button class="px-6 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700">
+            Search
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Image -->
+      <div class="hidden md:block">
+        <img
+          src="https://picsum.photos/seed/farm/800/600"
+          class="rounded-2xl shadow-lg"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES SECTION -->
+<section class="py-10">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <h2 class="text-2xl font-bold">Shop by Category</h2>
+
+    <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+      <div
+        *ngFor="let c of categories"
+        class="bg-white p-4 rounded-xl flex flex-col items-center shadow hover:shadow-md transition cursor-pointer"
+      >
+        <div class="text-3xl">{{ c.icon }}</div>
+        <div class="mt-2 font-medium">{{ c.name }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+<section class="py-10 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold">Featured Products</h2>
+      <a class="text-green-600 cursor-pointer hover:underline">See all</a>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <app-product-card
+        *ngFor="let p of featured"
+        [product]="p"
+      ></app-product-card>
+    </div>
+
+  </div>
+</section>
