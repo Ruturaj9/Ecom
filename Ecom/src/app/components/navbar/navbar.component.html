@@ -1,14 +1,15 @@
 <nav class="bg-white shadow-sm">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between h-16 items-center">
-
       <!-- Logo -->
       <a routerLink="/" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white text-lg font-bold">
+        <div
+          class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white text-lg font-bold"
+        >
           K
         </div>
         <div>
-          <div class="font-bold text-lg">Kisan<span class="text-green-600">Konnect</span></div>
+          <div class="font-bold text-lg">E<span class="text-green-600">Com</span></div>
           <div class="text-xs text-gray-500 -mt-0.5">Farm to table marketplace</div>
         </div>
       </a>
@@ -29,26 +30,70 @@
         </div>
 
         <div class="flex items-center gap-3">
+          <a routerLink="/cart" class="relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-gray-700 hover:text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6a4 4 0 10-8 0v7"
+              />
+            </svg>
+
+            <!-- Count Badge -->
+            <span
+              *ngIf="cartCount > 0"
+              class="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full"
+            >
+              {{ cartCount }}
+            </span>
+          </a>
+
           <button class="px-4 py-2 rounded-lg border hover:bg-green-50">Login</button>
-          <button class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">Sign Up</button>
+          <button class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
+            Sign Up
+          </button>
         </div>
       </div>
 
       <!-- Mobile Button -->
-      <button
-        class="md:hidden p-2 rounded-md border"
-        (click)="toggleMobile()"
-      >
-        <svg *ngIf="!mobileOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 8h16M4 16h16" />
+      <button class="md:hidden p-2 rounded-md border" (click)="toggleMobile()">
+        <svg
+          *ngIf="!mobileOpen"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 8h16M4 16h16"
+          />
         </svg>
 
-        <svg *ngIf="mobileOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M6 18L18 6M6 6l12 12" />
+        <svg
+          *ngIf="mobileOpen"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
@@ -67,6 +112,9 @@
         placeholder="Search..."
         class="w-full px-3 py-2 rounded-lg border mt-2"
       />
+      <a routerLink="/cart" (click)="toggleMobile()" class="block text-gray-700">
+        🛒 Cart ({{ cartCount }})
+      </a>
 
       <div class="flex gap-2">
         <button class="flex-1 px-3 py-2 rounded-lg border">Login</button>
