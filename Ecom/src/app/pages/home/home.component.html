@@ -1,3 +1,85 @@
+<!-- PREMIUM OFFER SLIDER SECTION -->
+<section class="w-full overflow-hidden relative">
+  <div class="max-w-7xl mx-auto px-4 py-6">
+
+    <div
+      class="relative h-60 md:h-96 rounded-2xl overflow-hidden shadow-xl"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)"
+      (pointerleave)="onPointerUp($event)"
+    >
+
+      <!-- Slides -->
+      @for (img of offerImages; track $index) {
+        <div
+          class="absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out"
+          [class.opacity-0]="currentSlide !== $index"
+          [class.opacity-100]="currentSlide === $index"
+        >
+
+          <!-- Background image -->
+          <img
+            class="w-full h-full object-cover"
+            [src]="img"
+          />
+
+          <!-- Gradient overlay -->
+          <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
+
+          <!-- Premium Text -->
+          <div class="absolute left-8 top-1/2 -translate-y-1/2 text-white max-w-lg">
+            <h2 class="text-3xl md:text-5xl font-extrabold drop-shadow-lg">
+              Fresh Deals Just For You
+            </h2>
+            <p class="mt-3 text-lg md:text-xl font-light text-white/90">
+              Get exclusive farm-fresh offers delivered straight to your home.
+            </p>
+            <button
+              class="mt-5 px-6 py-3 bg-green-500 hover:bg-green-600 transition rounded-full shadow-lg font-semibold"
+            >
+              Shop Now
+            </button>
+          </div>
+
+        </div>
+      }
+
+      <!-- Left arrow -->
+      <button
+        (click)="prevClicked()"
+        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow z-10"
+      >
+        ‹
+      </button>
+
+      <!-- Right arrow -->
+      <button
+        (click)="nextClicked()"
+        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow z-10"
+      >
+        ›
+      </button>
+
+      <!-- Dot indicators -->
+      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+        @for (img of offerImages; track $index) {
+          <button
+            (click)="goToSlide($index)"
+            class="w-4 h-4 rounded-full transition-all duration-300 border border-white"
+            [class.bg-white]="currentSlide === $index"
+            [class.bg-white/30]="currentSlide !== $index"
+          ></button>
+        }
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
 <!-- HERO SECTION -->
 <section class="bg-green-50">
   <div class="max-w-7xl mx-auto px-4 py-12 lg:py-20">
@@ -46,13 +128,16 @@
     <h2 class="text-2xl font-bold">Shop by Category</h2>
 
     <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-      <div
-        *ngFor="let c of categories"
-        class="bg-white p-4 rounded-xl flex flex-col items-center shadow hover:shadow-md transition cursor-pointer"
-      >
-        <div class="text-3xl">{{ c.icon }}</div>
-        <div class="mt-2 font-medium">{{ c.name }}</div>
-      </div>
+
+      @for (c of categories; track $index) {
+        <div
+          class="bg-white p-4 rounded-xl flex flex-col items-center shadow hover:shadow-md transition cursor-pointer"
+        >
+          <div class="text-3xl">{{ c.icon }}</div>
+          <div class="mt-2 font-medium">{{ c.name }}</div>
+        </div>
+      }
+
     </div>
   </div>
 </section>
@@ -67,10 +152,11 @@
     </div>
 
     <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-      <app-product-card
-        *ngFor="let p of featured"
-        [product]="p"
-      ></app-product-card>
+
+      @for (p of featured; track p.id ?? $index) {
+        <app-product-card [product]="p"></app-product-card>
+      }
+
     </div>
 
   </div>
