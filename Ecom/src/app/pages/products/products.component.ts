@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-products',
@@ -12,7 +13,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
 export class ProductsComponent {
 
   searchText = '';
-  selectedCategory = 'All';
+  selectedCategory: string = 'All';
   sortBy = 'none';
 
   categories = ['All', 'Vegetables', 'Fruits', 'Grains', 'Dairy', 'Pulses', 'Seeds'];
@@ -28,19 +29,35 @@ export class ProductsComponent {
     { id: 8, title: 'Sunflower Seeds', price: 80, category: 'Seeds', location: 'Thane', image: 'https://picsum.photos/seed/p8/600/400' },
   ];
 
+  constructor(private route: ActivatedRoute) {
+    // read category from query params and apply as filter (if present)
+    this.route.queryParams.subscribe(params => {
+      const cat = params['category'];
+      if (cat && this.categories.includes(cat)) {
+        this.selectedCategory = cat;
+      } else {
+        this.selectedCategory = 'All';
+      }
+      // optional: if you want to prefill searchText from query param:
+      // this.searchText = params['q'] || '';
+    });
+  }
+
   get filteredProducts() {
+    // copy to avoid mutating original array when sorting
     let filtered = this.products.filter(p =>
       p.title.toLowerCase().includes(this.searchText.toLowerCase())
     );
 
-    if (this.selectedCategory !== 'All') {
+    if (this.selectedCategory && this.selectedCategory !== 'All') {
       filtered = filtered.filter(p => p.category === this.selectedCategory);
     }
 
+    // perform sort on a copy
     if (this.sortBy === 'low-high') {
-      filtered = filtered.sort((a, b) => a.price - b.price);
+      filtered = [...filtered].sort((a, b) => a.price - b.price);
     } else if (this.sortBy === 'high-low') {
-      filtered = filtered.sort((a, b) => b.price - a.price);
+      filtered = [...filtered].sort((a, b) => b.price - a.price);
     }
 
     return filtered;

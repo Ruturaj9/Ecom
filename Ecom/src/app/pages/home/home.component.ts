@@ -1,19 +1,18 @@
 import { Component, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent],
+  imports: [CommonModule, ProductCardComponent],
   templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnDestroy {
 
   currentSlide = 0;
 
-  /* PREMIUM SLIDER IMAGES */
   offerImages = [
     "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80",
     "https://images.unsplash.com/photo-1511689988353-3a2f5be94cd6?auto=format&fit=crop&w=1600&q=80",
@@ -22,11 +21,10 @@ export class HomeComponent implements OnDestroy {
 
   private timer: any;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor(private cdr: ChangeDetectorRef, private router: Router) {
     this.startAutoSlide();
   }
 
-  /* AUTO SLIDER FIXED FOR ANGULAR 21 */
   startAutoSlide() {
     this.stopAutoSlide();
     this.timer = setInterval(() => {
@@ -56,6 +54,21 @@ export class HomeComponent implements OnDestroy {
     this.cdr.markForCheck();
   }
 
+  /* --- CATEGORY NAVIGATION --- */
+  categories = [
+    { id: 1, name: 'Vegetables', icon: '🥕' },
+    { id: 2, name: 'Fruits', icon: '🍎' },
+    { id: 3, name: 'Grains', icon: '🌾' },
+    { id: 4, name: 'Dairy', icon: '🧀' },
+    { id: 5, name: 'Pulses', icon: '🫘' },
+    { id: 6, name: 'Seeds', icon: '🌱' }
+  ];
+
+  goToCategory(c: { id: number; name: string; icon: string }) {
+    // navigate to /products with category query param
+    this.router.navigate(['/products'], { queryParams: { category: c.name } });
+  }
+
   /* SWIPE SUPPORT */
   touchStartX = 0;
   touchEndX = 0;
@@ -80,17 +93,7 @@ export class HomeComponent implements OnDestroy {
     this.stopAutoSlide();
   }
 
-  /* CATEGORY LIST */
-  categories = [
-    { id: 1, name: 'Vegetables', icon: '🥕' },
-    { id: 2, name: 'Fruits', icon: '🍎' },
-    { id: 3, name: 'Grains', icon: '🌾' },
-    { id: 4, name: 'Dairy', icon: '🧀' },
-    { id: 5, name: 'Pulses', icon: '🫘' },
-    { id: 6, name: 'Seeds', icon: '🌱' }
-  ];
-
-  /* FEATURED PRODUCTS */
+  /* FEATURED (kept for page) */
   featured = [
     { id: 1, title: 'Potatoes', price: 22, location: 'Pune', image: 'https://picsum.photos/seed/p1/600/400' },
     { id: 2, title: 'Tomatoes', price: 40, location: 'Nashik', image: 'https://picsum.photos/seed/p2/600/400' },

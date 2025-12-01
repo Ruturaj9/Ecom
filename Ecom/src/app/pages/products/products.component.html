@@ -19,7 +19,9 @@
       [(ngModel)]="selectedCategory"
       class="w-full px-3 py-2 border rounded-lg mb-4"
     >
-      <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+      @for (c of categories; track $index) {
+        <option [value]="c">{{ c }}</option>
+      }
     </select>
 
     <!-- Sorting -->
@@ -39,10 +41,9 @@
     <h2 class="text-2xl font-bold mb-4">Products</h2>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <app-product-card
-        *ngFor="let p of filteredProducts"
-        [product]="p"
-      ></app-product-card>
+      @for (p of filteredProducts; track p.id) {
+        <app-product-card [product]="p"></app-product-card>
+      }
     </div>
   </div>
 
