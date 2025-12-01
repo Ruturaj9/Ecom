@@ -30,21 +30,21 @@ export class ProductsComponent {
   ];
 
   constructor(private route: ActivatedRoute) {
-    // read category from query params and apply as filter (if present)
     this.route.queryParams.subscribe(params => {
       const cat = params['category'];
+      const q = params['q'];
       if (cat && this.categories.includes(cat)) {
         this.selectedCategory = cat;
       } else {
         this.selectedCategory = 'All';
       }
-      // optional: if you want to prefill searchText from query param:
-      // this.searchText = params['q'] || '';
+
+      // set searchText from q param, if present
+      this.searchText = q || '';
     });
   }
 
   get filteredProducts() {
-    // copy to avoid mutating original array when sorting
     let filtered = this.products.filter(p =>
       p.title.toLowerCase().includes(this.searchText.toLowerCase())
     );
@@ -53,7 +53,6 @@ export class ProductsComponent {
       filtered = filtered.filter(p => p.category === this.selectedCategory);
     }
 
-    // perform sort on a copy
     if (this.sortBy === 'low-high') {
       filtered = [...filtered].sort((a, b) => a.price - b.price);
     } else if (this.sortBy === 'high-low') {
