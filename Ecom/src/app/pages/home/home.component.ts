@@ -13,6 +13,7 @@ export class HomeComponent implements OnDestroy {
 
   currentSlide = 0;
 
+  /* PREMIUM SLIDER IMAGES */
   offerImages = [
     "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80",
     "https://images.unsplash.com/photo-1511689988353-3a2f5be94cd6?auto=format&fit=crop&w=1600&q=80",
@@ -25,7 +26,7 @@ export class HomeComponent implements OnDestroy {
     this.startAutoSlide();
   }
 
-  /* AUTO SLIDE */
+  /* AUTO SLIDER FIXED FOR ANGULAR 21 */
   startAutoSlide() {
     this.stopAutoSlide();
     this.timer = setInterval(() => {
@@ -39,43 +40,39 @@ export class HomeComponent implements OnDestroy {
 
   next() {
     this.currentSlide = (this.currentSlide + 1) % this.offerImages.length;
-    this.cdr.markForCheck();   // 👉 Force template update
+    this.cdr.markForCheck();
   }
 
   prev() {
     this.currentSlide =
       (this.currentSlide - 1 + this.offerImages.length) %
       this.offerImages.length;
-
-    this.cdr.markForCheck();   // 👉 Force update
+    this.cdr.markForCheck();
   }
 
   goTo(i: number) {
     this.currentSlide = i;
     this.startAutoSlide();
-
-    this.cdr.markForCheck();   // 👉 Render immediately
+    this.cdr.markForCheck();
   }
 
   /* SWIPE SUPPORT */
   touchStartX = 0;
   touchEndX = 0;
 
-  onTouchStart(event: TouchEvent) {
+  onTouchStart(e: TouchEvent) {
     this.stopAutoSlide();
-    this.touchStartX = event.touches[0].clientX;
+    this.touchStartX = e.touches[0].clientX;
   }
 
-  onTouchMove(event: TouchEvent) {
-    this.touchEndX = event.touches[0].clientX;
+  onTouchMove(e: TouchEvent) {
+    this.touchEndX = e.touches[0].clientX;
   }
 
   onTouchEnd() {
     const delta = this.touchEndX - this.touchStartX;
-
     if (delta > 50) this.prev();
     else if (delta < -50) this.next();
-
     this.startAutoSlide();
   }
 
@@ -83,7 +80,7 @@ export class HomeComponent implements OnDestroy {
     this.stopAutoSlide();
   }
 
-  /* ------------------ CATEGORIES ------------------ */
+  /* CATEGORY LIST */
   categories = [
     { id: 1, name: 'Vegetables', icon: '🥕' },
     { id: 2, name: 'Fruits', icon: '🍎' },
@@ -93,12 +90,11 @@ export class HomeComponent implements OnDestroy {
     { id: 6, name: 'Seeds', icon: '🌱' }
   ];
 
-  /* ------------------ FEATURED PRODUCTS ------------------ */
+  /* FEATURED PRODUCTS */
   featured = [
     { id: 1, title: 'Potatoes', price: 22, location: 'Pune', image: 'https://picsum.photos/seed/p1/600/400' },
     { id: 2, title: 'Tomatoes', price: 40, location: 'Nashik', image: 'https://picsum.photos/seed/p2/600/400' },
     { id: 3, title: 'Onions', price: 35, location: 'Solapur', image: 'https://picsum.photos/seed/p3/600/400' },
     { id: 4, title: 'Banana', price: 55, location: 'Satara', image: 'https://picsum.photos/seed/p4/600/400' }
   ];
-
 }

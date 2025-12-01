@@ -1,6 +1,6 @@
 <div
   (click)="goToDetail()"
-  class="cursor-pointer bg-white rounded-2xl shadow overflow-hidden hover:shadow-lg transition"
+  class="cursor-pointer bg-white rounded-2xl shadow overflow-hidden hover:shadow-lg transition "
   role="button"
   tabindex="0"
   (keydown.enter)="goToDetail()"
@@ -30,14 +30,14 @@
 
       <button
         (click)="$event.stopPropagation(); goToDetail($event)"
-        class="flex-1 px-3 py-1 rounded-lg border text-sm hover:bg-gray-100"
+        class="flex-1 px-3 py-1 rounded-lg border text-sm hover:bg-gray-100 cursor-pointer"
       >
         View
       </button>
 
       <button
         (click)="$event.stopPropagation()"
-        class="px-3 py-1 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700"
+        class="px-3 py-1 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 cursor-pointer"
       >
         Contact
       </button>
