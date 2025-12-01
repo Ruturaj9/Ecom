@@ -1,76 +1,66 @@
-<!-- PREMIUM OFFER SLIDER SECTION -->
-<section class="w-full overflow-hidden relative">
+<!-- ================= PREMIUM SLIDER ================= -->
+<section class="w-full relative select-none">
   <div class="max-w-7xl mx-auto px-4 py-6">
 
     <div
-      class="relative h-60 md:h-96 rounded-2xl overflow-hidden shadow-xl"
-      (pointerdown)="onPointerDown($event)"
-      (pointermove)="onPointerMove($event)"
-      (pointerup)="onPointerUp($event)"
-      (pointercancel)="onPointerUp($event)"
-      (pointerleave)="onPointerUp($event)"
+      class="relative rounded-3xl overflow-hidden h-64 md:h-[430px] shadow-2xl"
+      (touchstart)="onTouchStart($event)"
+      (touchmove)="onTouchMove($event)"
+      (touchend)="onTouchEnd()"
     >
 
       <!-- Slides -->
       @for (img of offerImages; track $index) {
         <div
-          class="absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out"
-          [class.opacity-0]="currentSlide !== $index"
+          class="absolute inset-0 transition-opacity duration-700 ease-in-out"
           [class.opacity-100]="currentSlide === $index"
+          [class.opacity-0]="currentSlide !== $index"
         >
-
-          <!-- Background image -->
-          <img
-            class="w-full h-full object-cover"
-            [src]="img"
-          />
+          <img [src]="img" class="w-full h-full object-cover" />
 
           <!-- Gradient overlay -->
           <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
 
-          <!-- Premium Text -->
-          <div class="absolute left-8 top-1/2 -translate-y-1/2 text-white max-w-lg">
-            <h2 class="text-3xl md:text-5xl font-extrabold drop-shadow-lg">
-              Fresh Deals Just For You
+          <!-- Slide Text -->
+          <div class="absolute top-1/2 -translate-y-1/2 left-10 text-white max-w-xl">
+            <h2 class="text-4xl md:text-6xl font-extrabold drop-shadow-xl">
+              Fresh. Organic. Local.
             </h2>
             <p class="mt-3 text-lg md:text-xl font-light text-white/90">
-              Get exclusive farm-fresh offers delivered straight to your home.
+              Hand-picked produce delivered to your doorstep.
             </p>
-            <button
-              class="mt-5 px-6 py-3 bg-green-500 hover:bg-green-600 transition rounded-full shadow-lg font-semibold"
-            >
+            <button class="mt-5 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-full font-semibold shadow-xl">
               Shop Now
             </button>
           </div>
-
         </div>
       }
 
-      <!-- Left arrow -->
+      <!-- Left Button -->
       <button
-        (click)="prevClicked()"
-        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow z-10"
+        class="absolute top-1/2 -translate-y-1/2 left-4 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg z-20"
+        (click)="prev()"
       >
         ‹
       </button>
 
-      <!-- Right arrow -->
+      <!-- Right Button -->
       <button
-        (click)="nextClicked()"
-        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow z-10"
+        class="absolute top-1/2 -translate-y-1/2 right-4 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg z-20"
+        (click)="next()"
       >
         ›
       </button>
 
-      <!-- Dot indicators -->
-      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-10">
-        @for (img of offerImages; track $index) {
-          <button
-            (click)="goToSlide($index)"
-            class="w-4 h-4 rounded-full transition-all duration-300 border border-white"
+      <!-- Dots -->
+      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+        @for (dot of offerImages; track $index) {
+          <div
+            (click)="goTo($index)"
+            class="w-4 h-4 rounded-full cursor-pointer transition-all duration-300 border border-white/70"
             [class.bg-white]="currentSlide === $index"
             [class.bg-white/30]="currentSlide !== $index"
-          ></button>
+          ></div>
         }
       </div>
 
@@ -80,12 +70,11 @@
 </section>
 
 
-<!-- HERO SECTION -->
+<!-- ================= HERO SECTION ================= -->
 <section class="bg-green-50">
   <div class="max-w-7xl mx-auto px-4 py-12 lg:py-20">
     <div class="grid md:grid-cols-2 gap-8 items-center">
 
-      <!-- Left Text -->
       <div>
         <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900">
           Fresh produce from local farmers,
@@ -98,11 +87,8 @@
         </p>
 
         <div class="mt-6 flex gap-3">
-          <input
-            type="text"
-            class="flex-1 px-4 py-3 rounded-lg border focus:outline-none"
-            placeholder="Search for products or locations"
-          />
+          <input type="text" class="flex-1 px-4 py-3 rounded-lg border focus:outline-none"
+            placeholder="Search for products or locations" />
 
           <button class="px-6 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700">
             Search
@@ -110,18 +96,16 @@
         </div>
       </div>
 
-      <!-- Right Image -->
       <div class="hidden md:block">
-        <img
-          src="https://picsum.photos/seed/farm/800/600"
-          class="rounded-2xl shadow-lg"
-        />
+        <img src="https://picsum.photos/seed/farm/800/600" class="rounded-2xl shadow-lg" />
       </div>
+
     </div>
   </div>
 </section>
 
-<!-- CATEGORIES SECTION -->
+
+<!-- ================= CATEGORIES SECTION ================= -->
 <section class="py-10">
   <div class="max-w-7xl mx-auto px-4">
 
@@ -142,7 +126,8 @@
   </div>
 </section>
 
-<!-- FEATURED PRODUCTS -->
+
+<!-- ================= FEATURED PRODUCTS ================= -->
 <section class="py-10 bg-gray-50">
   <div class="max-w-7xl mx-auto px-4">
 
