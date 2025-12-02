@@ -1,6 +1,8 @@
 module.exports = (err, req, res, next) => {
-  console.error(err);
+  console.error("Error:", err);
   if (res.headersSent) return next(err);
-  const status = err.status || 500;
-  res.status(status).json({ error: err.message || 'Internal Server Error' });
+
+  res.status(err.status || 500).json({
+    error: err.message || "Internal server error"
+  });
 };

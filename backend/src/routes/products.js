@@ -6,32 +6,34 @@ const validateRequest = require('../middleware/validateRequest');
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
-    const products = await Product.find().limit(50).lean();
-    res.json({ products });
+    const list = await Product.find().limit(50).lean();
+    res.json({ products: list });
   } catch (err) {
     next(err);
   }
 });
 
 router.post(
-  '/',
+  "/",
   verifyAccessToken,
   [
-    body('title').isString().notEmpty(),
-    body('price').isNumeric()
+    body("title").isString().notEmpty(),
+    body("price").isNumeric()
   ],
   validateRequest,
   async (req, res, next) => {
     try {
       const { title, description, price } = req.body;
+
       const product = new Product({
         title,
         description,
         price,
         createdBy: req.user.id
       });
+
       await product.save();
       res.status(201).json({ product });
     } catch (err) {
