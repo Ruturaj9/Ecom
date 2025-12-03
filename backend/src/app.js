@@ -8,6 +8,8 @@ const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const errorHandler = require('./middleware/errorHandler');
+const Product = require("./models/Product");
+const requireAdmin = require('./middleware/requireAdmin');
 
 const app = express();
 
@@ -50,6 +52,40 @@ app.get("/", (req, res) => {
     message: "Welcome to Ecom API"
   });
 });
+
+app.post("/test-insert-product", async (req, res) => {
+  try {
+    const product = await Product.create({
+      title: "Test Product",
+      description: "This is inserted without auth for testing",
+      price: 123
+    });
+
+    res.json({
+      message: "Product inserted successfully",
+      product
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/admin/test', requireAdmin(), (req, res) => {
+  res.json({
+    message: 'Admin access verified',
+    admin: req.admin
+  });
+});
+
+app.use('/admin/products', require('./routes/admin/products'));
+
+app.use('/admin/logs', require('./routes/admin/logs'));
+
+app.use('/admin/categories', require('./routes/admin/categories'));
+
+app.use('/admin/upload', require('./routes/admin/upload'));
+
+app.use('/admin/products/upload', require('./routes/admin/productImages'));
 
 app.use(errorHandler);
 

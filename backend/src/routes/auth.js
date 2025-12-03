@@ -1,3 +1,4 @@
+// src/routes/auth.js
 const express = require('express');
 const { body } = require('express-validator');
 const bcrypt = require('bcrypt');
@@ -5,63 +6,82 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 const validateRequest = require('../middleware/validateRequest');
-const { toMs } = require('../utils/time');
 
-const ACCESS_EXP = process.env.ACCESS_TOKEN_EXPIRES;
-const REFRESH_EXP = process.env.REFRESH_TOKEN_EXPIRES;
+const ACCESS_EXP = process.env.ACCESS_TOKEN_EXPIRES || '15m';
+const REFRESH_EXP = process.env.REFRESH_TOKEN_EXPIRES || '7d';
 
-const signAccess = (user) =>
-  jwt.sign(
+// -----------------------------------------------------
+// TOKEN HELPERS
+// -----------------------------------------------------
+
+const signAccessToken = (user) => {
+  return jwt.sign(
     { sub: user._id.toString(), roles: user.roles || [] },
     process.env.JWT_ACCESS_SECRET,
     { expiresIn: ACCESS_EXP }
   );
+};
 
-const signRefresh = (user) =>
-  jwt.sign(
+const signRefreshToken = (user) => {
+  return jwt.sign(
     { sub: user._id.toString() },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: REFRESH_EXP }
   );
+};
 
-const hashToken = (t) =>
-  crypto.createHash("sha256").update(t).digest("hex");
+const hashToken = (token) =>
+  crypto.createHash('sha256').update(token).digest('hex');
+
+// convert "15m", "7d", etc → milliseconds
+function msToMs(str) {
+  const num = parseInt(str, 10);
+  if (str.endsWith('m')) return num * 60 * 1000;
+  if (str.endsWith('h')) return num * 60 * 60 * 1000;
+  if (str.endsWith('d')) return num * 24 * 60 * 60 * 1000;
+  return num;
+}
+
+// -----------------------------------------------------
 
 module.exports = (csrfProtection) => {
   const router = express.Router();
 
-  // REGISTER
+  // ---------------- REGISTER ----------------
   router.post(
-    "/register",
+    '/register',
     [
-      body("email").isEmail().withMessage("Valid email required"),
-      body("password").isLength({ min: 8 }),
-      body("name").optional().isString()
+      body('email').isEmail().withMessage('Valid email required'),
+      body('password').isLength({ min: 8 }).withMessage('Password min length 8'),
+      body('name').optional().isString()
     ],
     validateRequest,
     async (req, res, next) => {
       try {
         const { email, password, name } = req.body;
-        const exists = await User.findOne({ email });
-        if (exists) return res.status(409).json({ error: "Email already used" });
 
-        const hash = await bcrypt.hash(password, 12);
-        const user = new User({ email, passwordHash: hash, name });
+        const existing = await User.findOne({ email });
+        if (existing) return res.status(409).json({ error: 'Email already in use' });
 
+        const passwordHash = await bcrypt.hash(password, 12);
+
+        // DEFAULT ROLE = user
+        const user = new User({ email, passwordHash, name, roles: ['user'] });
         await user.save();
-        res.status(201).json({ message: "User registered" });
+
+        res.status(201).json({ message: 'User created' });
       } catch (err) {
         next(err);
       }
     }
   );
 
-  // LOGIN
+  // ---------------- LOGIN ----------------
   router.post(
-    "/login",
+    '/login',
     [
-      body("email").isEmail(),
-      body("password").isString()
+      body('email').isEmail(),
+      body('password').isString()
     ],
     validateRequest,
     csrfProtection,
@@ -70,110 +90,128 @@ module.exports = (csrfProtection) => {
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });
-        if (!user) return res.status(401).json({ error: "Invalid credentials" });
+        if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
+        // 1. Check lockout
+        if (user.isLocked()) {
+          return res.status(423).json({
+            error: 'Account locked due to multiple failed attempts. Try again later.'
+          });
+        }
+
+        // 2. Verify password
         const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+        if (!ok) {
+          await user.incFailedLogin();
+          return res.status(401).json({ error: 'Invalid credentials' });
+        }
 
-        const access = signAccess(user);
-        const refresh = signRefresh(user);
-
-        const tokenHash = hashToken(refresh);
-        const exp = new Date(Date.now() + toMs(REFRESH_EXP));
-
-        user.refreshTokens.push({ tokenHash, expiresAt: exp });
+        // 3. Reset lockout counters
+        user.failedLoginAttempts = 0;
+        user.lockUntil = null;
         await user.save();
 
-        res.cookie("refreshToken", refresh, {
+        // 4. Issue tokens
+        const accessToken = signAccessToken(user);
+        const refreshToken = signRefreshToken(user);
+
+        // store hashed refresh token
+        const refreshHash = hashToken(refreshToken);
+        const refreshExpiry = new Date(Date.now() + msToMs(REFRESH_EXP));
+
+        user.refreshTokens.push({
+          tokenHash: refreshHash,
+          expiresAt: refreshExpiry
+        });
+        await user.save();
+
+        // 5. Set refresh cookie
+        res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: toMs(REFRESH_EXP),
-          domain: process.env.COOKIE_DOMAIN
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: msToMs(REFRESH_EXP),
+          domain: process.env.COOKIE_DOMAIN || undefined
         });
 
-        res.json({ accessToken: access });
+        return res.json({ accessToken });
       } catch (err) {
         next(err);
       }
     }
   );
 
-  // REFRESH TOKEN
-  router.post("/refresh", async (req, res, next) => {
+  // ---------------- REFRESH TOKEN ----------------
+  router.post('/refresh', async (req, res, next) => {
     try {
       const token = req.cookies.refreshToken;
-      if (!token) return res.status(401).json({ error: "No refresh token" });
+      if (!token) return res.status(401).json({ error: 'No refresh token' });
 
       let payload;
       try {
         payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-      } catch {
-        return res.status(401).json({ error: "Refresh token invalid" });
+      } catch (err) {
+        return res.status(401).json({ error: 'Invalid refresh token' });
       }
 
       const user = await User.findById(payload.sub);
-      if (!user) return res.status(401).json({ error: "User not found" });
+      if (!user) return res.status(401).json({ error: 'User not found' });
 
-      const hash = hashToken(token);
+      const tokenHash = hashToken(token);
       const match = user.refreshTokens.find(
-        (t) => t.tokenHash === hash && t.expiresAt > new Date()
+        (rt) => rt.tokenHash === tokenHash && rt.expiresAt > new Date()
       );
+      if (!match) return res.status(401).json({ error: 'Refresh token expired/revoked' });
 
-      if (!match)
-        return res.status(401).json({ error: "Refresh token expired or revoked" });
+      // rotate
+      const newRefreshToken = signRefreshToken(user);
+      const newHash = hashToken(newRefreshToken);
+      const newExpiry = new Date(Date.now() + msToMs(REFRESH_EXP));
 
-      // ROTATE TOKENS
-      const newRefresh = signRefresh(user);
-      const newHash = hashToken(newRefresh);
-      const newExp = new Date(Date.now() + toMs(REFRESH_EXP));
-
-      user.refreshTokens = user.refreshTokens.filter((t) => t.tokenHash !== hash);
-      user.refreshTokens.push({ tokenHash: newHash, expiresAt: newExp });
-
+      user.refreshTokens = user.refreshTokens.filter(rt => rt.tokenHash !== tokenHash);
+      user.refreshTokens.push({ tokenHash: newHash, expiresAt: newExpiry });
       await user.save();
 
-      res.cookie("refreshToken", newRefresh, {
+      res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: toMs(REFRESH_EXP),
-        domain: process.env.COOKIE_DOMAIN
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: msToMs(REFRESH_EXP),
+        domain: process.env.COOKIE_DOMAIN || undefined
       });
 
-      res.json({ accessToken: signAccess(user) });
+      return res.json({ accessToken: signAccessToken(user) });
     } catch (err) {
       next(err);
     }
   });
 
-  // LOGOUT
-  router.post("/logout", async (req, res, next) => {
+  // ---------------- LOGOUT ----------------
+  router.post('/logout', async (req, res, next) => {
     try {
       const token = req.cookies.refreshToken;
+
       if (token) {
         try {
           const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
           const user = await User.findById(payload.sub);
 
           if (user) {
-            const hash = hashToken(token);
-            user.refreshTokens = user.refreshTokens.filter(
-              (t) => t.tokenHash !== hash
-            );
+            const tokenHash = hashToken(token);
+            user.refreshTokens = user.refreshTokens.filter(rt => rt.tokenHash !== tokenHash);
             await user.save();
           }
-        } catch {}
+        } catch (_) {}
       }
 
-      res.clearCookie("refreshToken", {
+      res.clearCookie('refreshToken', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        domain: process.env.COOKIE_DOMAIN
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        domain: process.env.COOKIE_DOMAIN || undefined
       });
 
-      res.json({ message: "Logged out" });
+      res.json({ message: 'Logged out' });
     } catch (err) {
       next(err);
     }
