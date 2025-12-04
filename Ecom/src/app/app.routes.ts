@@ -1,16 +1,17 @@
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
+import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
 
-  // Home Page
+  // Public Routes
   {
     path: '',
     component: HomeComponent,
     pathMatch: 'full'
   },
 
-  // Products List Page
   {
     path: 'products',
     loadComponent: () =>
@@ -18,7 +19,6 @@ export const routes: Routes = [
         .then(m => m.ProductsComponent)
   },
 
-  // Product Details Page
   {
     path: 'products/:id',
     loadComponent: () =>
@@ -26,7 +26,6 @@ export const routes: Routes = [
         .then(m => m.ProductDetailsComponent)
   },
 
-  // Cart Page
   {
     path: 'cart',
     loadComponent: () =>
@@ -34,15 +33,6 @@ export const routes: Routes = [
         .then(m => m.CartComponent)
   },
 
-  // Admin Product Upload
-  {
-    path: 'admin/upload',
-    loadComponent: () =>
-      import('./pages/admin/product-uploader/product-uploader.component')
-        .then(m => m.ProductUploaderComponent)
-  },
-
-  // Login
   {
     path: 'login',
     loadComponent: () =>
@@ -50,15 +40,40 @@ export const routes: Routes = [
         .then(m => m.LoginComponent)
   },
 
-  // Admin Slider Upload
+  // Admin Section
   {
-    path: 'admin/slider-upload',
+    path: 'admin',
+    canActivate: [AdminGuard],
     loadComponent: () =>
-      import('./pages/admin/slider-uploader/slider-uploader.component')
-        .then(m => m.SliderUploaderComponent)
+      import('./pages/admin/admin-layout/admin-layout.component')
+        .then(m => m.AdminLayoutComponent),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./pages/admin/admin-home/admin-home.component')
+            .then(m => m.AdminHomeComponent)
+      },
+
+      {
+        path: 'upload',
+        loadComponent: () =>
+          import('./pages/admin/product-uploader/product-uploader.component')
+            .then(m => m.ProductUploaderComponent)
+      },
+
+      {
+        path: 'slider-upload',
+        loadComponent: () =>
+          import('./pages/admin/slider-uploader/slider-uploader.component')
+            .then(m => m.SliderUploaderComponent)
+      },
+
+      // Missing pages will be added later
+    ]
   },
 
-  // 404 Fallback
+  // 404 fallback
   {
     path: '**',
     redirectTo: ''

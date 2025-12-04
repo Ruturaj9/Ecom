@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 const validateRequest = require('../middleware/validateRequest');
+const { verifyAccessToken } = require('../middleware/auth'); // ✅ IMPORTANT FIX
 
 const ACCESS_EXP = process.env.ACCESS_TOKEN_EXPIRES || '15m';
 const REFRESH_EXP = process.env.REFRESH_TOKEN_EXPIRES || '7d';
@@ -13,7 +14,6 @@ const REFRESH_EXP = process.env.REFRESH_TOKEN_EXPIRES || '7d';
 // -----------------------------------------------------
 // TOKEN HELPERS
 // -----------------------------------------------------
-
 const signAccessToken = (user) => {
   return jwt.sign(
     { sub: user._id.toString(), roles: user.roles || [] },
@@ -58,16 +58,13 @@ module.exports = (csrfProtection) => {
     async (req, res, next) => {
       try {
         const { email, password, name } = req.body;
-
         const existing = await User.findOne({ email });
         if (existing) return res.status(409).json({ error: 'Email already in use' });
 
         const passwordHash = await bcrypt.hash(password, 12);
-
-        // DEFAULT ROLE = user
         const user = new User({ email, passwordHash, name, roles: ['user'] });
-        await user.save();
 
+        await user.save();
         res.status(201).json({ message: 'User created' });
       } catch (err) {
         next(err);
@@ -78,10 +75,7 @@ module.exports = (csrfProtection) => {
   // ---------------- LOGIN ----------------
   router.post(
     '/login',
-    [
-      body('email').isEmail(),
-      body('password').isString()
-    ],
+    [body('email').isEmail(), body('password').isString()],
     validateRequest,
     csrfProtection,
     async (req, res, next) => {
@@ -91,30 +85,25 @@ module.exports = (csrfProtection) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
-        // 1. Check lockout
         if (user.isLocked()) {
           return res.status(423).json({
             error: 'Account locked due to multiple failed attempts. Try again later.'
           });
         }
 
-        // 2. Verify password
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) {
           await user.incFailedLogin();
           return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // 3. Reset lockout counters
         user.failedLoginAttempts = 0;
         user.lockUntil = null;
         await user.save();
 
-        // 4. Issue tokens
         const accessToken = signAccessToken(user);
         const refreshToken = signRefreshToken(user);
 
-        // store hashed refresh token
         const refreshHash = hashToken(refreshToken);
         const refreshExpiry = new Date(Date.now() + msToMs(REFRESH_EXP));
 
@@ -124,7 +113,6 @@ module.exports = (csrfProtection) => {
         });
         await user.save();
 
-        // 5. Set refresh cookie (long-lived)
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -133,8 +121,6 @@ module.exports = (csrfProtection) => {
           domain: process.env.COOKIE_DOMAIN || undefined
         });
 
-        // 6. ALSO set access token as an httpOnly cookie (short-lived)
-        // This allows requireAdmin / verifyAccessToken to read cookie automatically.
         res.cookie('accessToken', accessToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -143,13 +129,27 @@ module.exports = (csrfProtection) => {
           domain: process.env.COOKIE_DOMAIN || undefined
         });
 
-        // 7. Return minimal info (optional)
         return res.json({ message: 'Logged in' });
       } catch (err) {
         next(err);
       }
     }
   );
+
+  // ---------------- GET AUTH USER (NEW) ----------------
+  router.get('/me', verifyAccessToken, async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user.id)
+        .select('-passwordHash -refreshTokens')
+        .lean();
+
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      res.json({ user });
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // ---------------- REFRESH TOKEN ----------------
   router.post('/refresh', async (req, res, next) => {
@@ -160,7 +160,7 @@ module.exports = (csrfProtection) => {
       let payload;
       try {
         payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-      } catch (err) {
+      } catch {
         return res.status(401).json({ error: 'Invalid refresh token' });
       }
 
@@ -173,7 +173,6 @@ module.exports = (csrfProtection) => {
       );
       if (!match) return res.status(401).json({ error: 'Refresh token expired/revoked' });
 
-      // rotate
       const newRefreshToken = signRefreshToken(user);
       const newHash = hashToken(newRefreshToken);
       const newExpiry = new Date(Date.now() + msToMs(REFRESH_EXP));
@@ -182,7 +181,6 @@ module.exports = (csrfProtection) => {
       user.refreshTokens.push({ tokenHash: newHash, expiresAt: newExpiry });
       await user.save();
 
-      // set rotated refresh cookie
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -191,8 +189,8 @@ module.exports = (csrfProtection) => {
         domain: process.env.COOKIE_DOMAIN || undefined
       });
 
-      // also set a fresh short-lived access token cookie
       const newAccess = signAccessToken(user);
+
       res.cookie('accessToken', newAccess, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -201,7 +199,7 @@ module.exports = (csrfProtection) => {
         domain: process.env.COOKIE_DOMAIN || undefined
       });
 
-      return res.json({ accessToken: newAccess });
+      res.json({ accessToken: newAccess });
     } catch (err) {
       next(err);
     }
@@ -225,7 +223,6 @@ module.exports = (csrfProtection) => {
         } catch (_) {}
       }
 
-      // clear both cookies
       res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

@@ -1,0 +1,61 @@
+<!-- Full Admin Layout -->
+<div class="min-h-screen flex bg-gray-100">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-900 text-white flex flex-col">
+    <div class="p-4 text-xl font-semibold border-b border-gray-700">
+      Admin Dashboard
+    </div>
+
+    <nav class="flex-1 p-4 space-y-2 text-gray-300">
+      <a routerLink="/admin"
+         class="block px-3 py-2 rounded hover:bg-gray-800"
+         routerLinkActive="bg-gray-800">
+        Dashboard Home
+      </a>
+
+      <a routerLink="/admin/upload"
+         class="block px-3 py-2 rounded hover:bg-gray-800"
+         routerLinkActive="bg-gray-800">
+        Upload Product
+      </a>
+
+      <a routerLink="/admin/slider-upload"
+         class="block px-3 py-2 rounded hover:bg-gray-800"
+         routerLinkActive="bg-gray-800">
+        Upload Slider
+      </a>
+
+      <a routerLink="/admin/products"
+         class="block px-3 py-2 rounded hover:bg-gray-800"
+         routerLinkActive="bg-gray-800">
+        Manage Products
+      </a>
+
+      <a routerLink="/admin/sliders"
+         class="block px-3 py-2 rounded hover:bg-gray-800"
+         routerLinkActive="bg-gray-800">
+        Manage Sliders
+      </a>
+
+      <a routerLink="/admin/logs"
+         class="block px-3 py-2 rounded hover:bg-gray-800"
+         routerLinkActive="bg-gray-800">
+        Audit Logs
+      </a>
+    </nav>
+
+    <button
+      class="m-4 px-3 py-2 bg-red-600 rounded hover:bg-red-700 text-white"
+      (click)="logout()"
+    >
+      Logout
+    </button>
+  </aside>
+
+  <!-- Right Content Area -->
+  <main class="flex-1 p-6">
+    <router-outlet></router-outlet>
+  </main>
+
+</div>
