@@ -90,6 +90,8 @@ app.use('/admin/logs', require('./routes/admin/logs'));
 app.use('/admin/categories', require('./routes/admin/categories'));
 app.use('/admin/upload', require('./routes/admin/upload'));
 app.use('/admin/products/upload', require('./routes/admin/productImages'));
+app.use('/admin/slider', require('./routes/admin/slider'));
+app.use('/slider', require('./routes/slider'));
 
 app.use(errorHandler);
 

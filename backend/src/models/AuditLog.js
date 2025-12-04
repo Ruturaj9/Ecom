@@ -8,9 +8,10 @@ const AuditLogSchema = new mongoose.Schema({
   // examples: "product.create", "product.update", "product.delete"
 
   resourceType: { type: String, required: true }, 
-  // example: "Product"
+  // example: "Product", "ProductImage"
 
-  resourceId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  // resourceId is now OPTIONAL for standalone events (image upload, login attempts, etc.)
+  resourceId: { type: mongoose.Schema.Types.ObjectId, default: null, required: false },
 
   before: { type: Object },  // previous data
   after: { type: Object },   // new data

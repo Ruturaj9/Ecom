@@ -33,18 +33,32 @@ export const routes: Routes = [
       import('./pages/cart/cart.component')
         .then(m => m.CartComponent)
   },
+
+  // Admin Product Upload
   {
-  path: 'admin/upload',
-  loadComponent: () => import('./pages/admin/product-uploader/product-uploader.component').then(m => m.ProductUploaderComponent)
-}
-,
-{
-  path: 'login',
-  loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
-},
+    path: 'admin/upload',
+    loadComponent: () =>
+      import('./pages/admin/product-uploader/product-uploader.component')
+        .then(m => m.ProductUploaderComponent)
+  },
 
+  // Login
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./pages/login/login.component')
+        .then(m => m.LoginComponent)
+  },
 
-  // Optional: 404 fallback (recommended)
+  // Admin Slider Upload
+  {
+    path: 'admin/slider-upload',
+    loadComponent: () =>
+      import('./pages/admin/slider-uploader/slider-uploader.component')
+        .then(m => m.SliderUploaderComponent)
+  },
+
+  // 404 Fallback
   {
     path: '**',
     redirectTo: ''
