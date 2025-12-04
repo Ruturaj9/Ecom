@@ -5,28 +5,34 @@ const auditLogger = require('../../middleware/auditLogger');
 
 const router = express.Router();
 
-// Upload single image
+// Upload multiple images
 router.post(
-  '/image',
+  '/images',
   requireAdmin(['admin']),
-  upload.single('image'),
+  upload.array('images', 10), // allow up to 10 images
   async (req, res, next) => {
     try {
-      const imageUrl = req.file.path; // Cloudinary URL
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: 'No images uploaded' });
+      }
 
-      // audit log
-      await auditLogger({
-        req,
-        actorId: req.admin.id,
-        actorEmail: req.admin.email,
-        action: 'image.upload',
-        resourceType: 'Image',
-        resourceId: req.file.filename,
-        before: null,
-        after: { url: imageUrl }
-      });
+      const urls = req.files.map((file) => file.path); // Cloudinary-generated URLs
 
-      res.json({ url: imageUrl });
+      // audit log each image
+      for (const file of req.files) {
+        await auditLogger({
+          req,
+          actorId: req.admin.id,
+          actorEmail: req.admin.email,
+          action: 'image.upload',
+          resourceType: 'Image',
+          resourceId: file.filename,
+          before: null,
+          after: { url: file.path }
+        });
+      }
+
+      res.json({ urls });
     } catch (err) {
       next(err);
     }

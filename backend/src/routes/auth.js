@@ -33,7 +33,6 @@ const signRefreshToken = (user) => {
 const hashToken = (token) =>
   crypto.createHash('sha256').update(token).digest('hex');
 
-// convert "15m", "7d", etc → milliseconds
 function msToMs(str) {
   const num = parseInt(str, 10);
   if (str.endsWith('m')) return num * 60 * 1000;
@@ -125,7 +124,7 @@ module.exports = (csrfProtection) => {
         });
         await user.save();
 
-        // 5. Set refresh cookie
+        // 5. Set refresh cookie (long-lived)
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -134,7 +133,18 @@ module.exports = (csrfProtection) => {
           domain: process.env.COOKIE_DOMAIN || undefined
         });
 
-        return res.json({ accessToken });
+        // 6. ALSO set access token as an httpOnly cookie (short-lived)
+        // This allows requireAdmin / verifyAccessToken to read cookie automatically.
+        res.cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: msToMs(ACCESS_EXP),
+          domain: process.env.COOKIE_DOMAIN || undefined
+        });
+
+        // 7. Return minimal info (optional)
+        return res.json({ message: 'Logged in' });
       } catch (err) {
         next(err);
       }
@@ -172,6 +182,7 @@ module.exports = (csrfProtection) => {
       user.refreshTokens.push({ tokenHash: newHash, expiresAt: newExpiry });
       await user.save();
 
+      // set rotated refresh cookie
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -180,7 +191,17 @@ module.exports = (csrfProtection) => {
         domain: process.env.COOKIE_DOMAIN || undefined
       });
 
-      return res.json({ accessToken: signAccessToken(user) });
+      // also set a fresh short-lived access token cookie
+      const newAccess = signAccessToken(user);
+      res.cookie('accessToken', newAccess, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: msToMs(ACCESS_EXP),
+        domain: process.env.COOKIE_DOMAIN || undefined
+      });
+
+      return res.json({ accessToken: newAccess });
     } catch (err) {
       next(err);
     }
@@ -204,7 +225,15 @@ module.exports = (csrfProtection) => {
         } catch (_) {}
       }
 
+      // clear both cookies
       res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        domain: process.env.COOKIE_DOMAIN || undefined
+      });
+
+      res.clearCookie('accessToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',

@@ -11,28 +11,24 @@ const cloudinary = require('../../config/cloudinary');
 const router = express.Router();
 
 /**
- * Extract Cloudinary public ID (robust, production-safe)
+ * Extract Cloudinary public ID
  */
 function extractPublicId(url) {
   try {
-    // Matches patterns including transformations and nested folders:
-    // /upload/.../v12345/folder/name.jpg
     const regex = /\/upload\/(?:[^\/]+\/)*([^\/]+\/)?v\d+\/(.+)\.\w+$/;
     const match = url.match(regex);
-
     if (!match) return null;
 
-    const folder = match[1] || "";  // folder/
-    const file = match[2];          // name
-
-    return folder + file;           // folder/name
-  } catch (err) {
+    const folder = match[1] || ""; 
+    const file = match[2];
+    return folder + file;
+  } catch {
     return null;
   }
 }
 
 /**
- * Delete Cloudinary images in parallel (fast, safe)
+ * Delete Cloudinary images
  */
 async function deleteCloudinaryUrls(urls = []) {
   if (!Array.isArray(urls) || urls.length === 0) return;
@@ -43,9 +39,9 @@ async function deleteCloudinaryUrls(urls = []) {
 
     try {
       await cloudinary.uploader.destroy(publicId, { invalidate: true });
-      console.log("🗑 Cloudinary deleted:", publicId);
+      console.log("🗑 Deleted:", publicId);
     } catch (err) {
-      console.error("⚠ Cloudinary delete failed:", publicId, err.message);
+      console.error("⚠ Delete failed:", publicId, err.message);
     }
   });
 
@@ -53,35 +49,29 @@ async function deleteCloudinaryUrls(urls = []) {
 }
 
 /**
- * ADMIN: CREATE PRODUCT
+ * CREATE PRODUCT
  * POST /admin/products
  */
 router.post(
   '/',
   requireAdmin(['admin']),
-  upload.array('images', 6),
   [
     body('title').isString().notEmpty(),
     body('price').isNumeric(),
     body('description').optional().isString(),
     body('images').optional().isArray(),
-    body('images.*').optional().isString().isURL()
+    body('images.*').optional().isURL()
   ],
   validateRequest,
   async (req, res, next) => {
     try {
-      const { title, description, price } = req.body;
-
-      const uploadedImages = req.files?.map((f) => f.path) || [];
-      const providedImages = Array.isArray(req.body.images) ? req.body.images : [];
-
-      const finalImages = uploadedImages.length > 0 ? uploadedImages : providedImages;
+      const { title, description, price, images = [] } = req.body;
 
       const product = await Product.create({
         title,
         description,
         price,
-        images: finalImages,
+        images,
         createdBy: req.admin.id
       });
 
@@ -104,8 +94,7 @@ router.post(
 );
 
 /**
- * ADMIN: GET ALL PRODUCTS
- * GET /admin/products
+ * GET ALL PRODUCTS
  */
 router.get('/', requireAdmin(['admin']), async (req, res, next) => {
   try {
@@ -121,12 +110,7 @@ router.get('/', requireAdmin(['admin']), async (req, res, next) => {
 });
 
 /**
- * ADMIN: UPDATE PRODUCT (Add / Remove / Replace Images)
- * PUT /admin/products/:id
- *
- * Body (form-data):
- *    existingImages: JSON array of images to KEEP
- *    newImages: uploaded files
+ * UPDATE PRODUCT
  */
 router.put(
   '/:id',
@@ -145,7 +129,6 @@ router.put(
       const before = await Product.findById(id).lean();
       if (!before) return res.status(404).json({ error: 'Product not found' });
 
-      // Parse existingImages JSON
       let existingImages = [];
       if (req.body.existingImages) {
         try {
@@ -156,8 +139,6 @@ router.put(
       }
 
       const newUploadedImages = req.files.map((f) => f.path);
-
-      // Final image list
       const finalImages = [...existingImages, ...newUploadedImages];
 
       const updateData = {
@@ -169,7 +150,6 @@ router.put(
 
       const updated = await Product.findByIdAndUpdate(id, { $set: updateData }, { new: true });
 
-      // Remove old images that were not kept
       const removedImages = before.images.filter((img) => !finalImages.includes(img));
       await deleteCloudinaryUrls(removedImages);
 
@@ -192,8 +172,7 @@ router.put(
 );
 
 /**
- * ADMIN: DELETE PRODUCT (with Cloudinary cleanup)
- * DELETE /admin/products/:id
+ * DELETE PRODUCT
  */
 router.delete(
   '/:id',
@@ -206,10 +185,8 @@ router.delete(
       const before = await Product.findById(id).lean();
       if (!before) return res.status(404).json({ error: 'Product not found' });
 
-      // Delete product doc
       await Product.findByIdAndDelete(id);
 
-      // Delete images
       await deleteCloudinaryUrls(before.images);
 
       await auditLogger({

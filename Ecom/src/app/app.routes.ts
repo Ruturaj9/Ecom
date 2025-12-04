@@ -33,6 +33,16 @@ export const routes: Routes = [
       import('./pages/cart/cart.component')
         .then(m => m.CartComponent)
   },
+  {
+  path: 'admin/upload',
+  loadComponent: () => import('./pages/admin/product-uploader/product-uploader.component').then(m => m.ProductUploaderComponent)
+}
+,
+{
+  path: 'login',
+  loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
+},
+
 
   // Optional: 404 fallback (recommended)
   {

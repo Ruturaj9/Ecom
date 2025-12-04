@@ -14,13 +14,20 @@ const requireAdmin = require('./middleware/requireAdmin');
 const app = express();
 
 app.use(helmet());
-app.use(express.json());
+
+// ⬆ Increase JSON & form size limits (needed for long Cloudinary URLs)
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+
 app.use(cookieParser());
 
-app.use(cors({
-  origin: process.env.CORS_ORIGIN,
-  credentials: true
-}));
+// ⬆ Fix CORS so cookies work
+app.use(
+  cors({
+    origin: 'http://localhost:4200', // direct allow for Angular
+    credentials: true
+  })
+);
 
 const csrfProtection = csurf({
   cookie: {
@@ -57,7 +64,7 @@ app.post("/test-insert-product", async (req, res) => {
   try {
     const product = await Product.create({
       title: "Test Product",
-      description: "This is inserted without auth for testing",
+      description: "Inserted for testing",
       price: 123
     });
 
@@ -77,14 +84,11 @@ app.get('/admin/test', requireAdmin(), (req, res) => {
   });
 });
 
+// Admin routes
 app.use('/admin/products', require('./routes/admin/products'));
-
 app.use('/admin/logs', require('./routes/admin/logs'));
-
 app.use('/admin/categories', require('./routes/admin/categories'));
-
 app.use('/admin/upload', require('./routes/admin/upload'));
-
 app.use('/admin/products/upload', require('./routes/admin/productImages'));
 
 app.use(errorHandler);
