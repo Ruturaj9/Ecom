@@ -4,91 +4,94 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private base = 'http://localhost:4000';
+
+  private baseAdmin = 'http://localhost:4000/admin';
 
   constructor(private http: HttpClient) {}
 
-  // ---------------------------------------------
-  // PRODUCT IMAGE UPLOAD (PRODUCT UPLOADER PAGE)
-  // ---------------------------------------------
-  uploadImages(files: File[]) {
-    const fd = new FormData();
-    files.forEach(f => fd.append('images', f)); // backend expects "images"
+  // -----------------------------------------------------
+  // PRODUCT CRUD
+  // -----------------------------------------------------
 
-    return this.http.post<{ urls: string[] }>(
-      `${this.base}/admin/upload/images`,
-      fd,
-      { withCredentials: true }
-    );
-  }
-
-  // ---------------------------------------------
-  // CREATE PRODUCT
-  // ---------------------------------------------
-  createProduct(payload: any) {
+  createProduct(payload: any): Observable<any> {
     return this.http.post(
-      `${this.base}/admin/products`,
+      `${this.baseAdmin}/products`,
       payload,
       { withCredentials: true }
     );
   }
 
-  // ============================================================
-  //  SLIDER UPLOAD & MANAGEMENT
-  // ============================================================
-
-  // ---------------------------------------------
-  // Upload images for SLIDER (Cloudinary)
-  // ---------------------------------------------
-  uploadSliderImages(files: File[]) {
-    const fd = new FormData();
-    files.forEach(f => fd.append('images', f)); // backend expects "images"
-
-    return this.http.post<{ urls: string[] }>(
-      `${this.base}/admin/slider/upload-images`,
-      fd,
-      { withCredentials: true }
-    );
-  }
-
-  // ---------------------------------------------
-  // SAVE SLIDER (title, subtitle, button, order)
-  // ---------------------------------------------
-  saveSlider(payload: any[]) {
-    return this.http.post(
-      `${this.base}/admin/slider`,
-      payload,
-      { withCredentials: true }
-    );
-  }
-
-  // ---------------------------------------------
-  // GET SLIDER (for homepage or admin list)
-  // ---------------------------------------------
-  getSlider(): Observable<any> {
+  getProducts(): Observable<any> {
     return this.http.get(
-      `${this.base}/slider`,
+      `${this.baseAdmin}/products`,
       { withCredentials: true }
     );
   }
 
-  // ---------------------------------------------
-  // DELETE SLIDE
-  // ---------------------------------------------
-  deleteSlide(id: string) {
+  deleteProduct(id: string): Observable<any> {
     return this.http.delete(
-      `${this.base}/admin/slider/${id}`,
+      `${this.baseAdmin}/products/${id}`,
       { withCredentials: true }
     );
   }
 
-  // ---------------------------------------------
-  // UPDATE SLIDE ORDER (drag & drop save)
-  // ---------------------------------------------
-  updateSlideOrder(slides: any[]) {
-    return this.http.put(
-      `${this.base}/admin/slider/reorder`,
-      { slides },
+  // -----------------------------------------------------
+  // PRODUCT IMAGE UPLOAD
+  // -----------------------------------------------------
+
+  uploadImages(files: File[]): Observable<{ urls: string[] }> {
+    const fd = new FormData();
+    files.forEach(f => fd.append('images', f));
+
+    return this.http.post<{ urls: string[] }>(
+      `${this.baseAdmin}/upload/images`,
+      fd,
+      { withCredentials: true }
+    );
+  }
+
+  // -----------------------------------------------------
+  // SLIDER IMAGE UPLOAD
+  // -----------------------------------------------------
+
+  uploadSliderImages(files: File[]): Observable<{ urls: string[] }> {
+    const fd = new FormData();
+    files.forEach(f => fd.append('images', f));
+
+    return this.http.post<{ urls: string[] }>(
+      `${this.baseAdmin}/slider/upload`,
+      fd,
+      { withCredentials: true }
+    );
+  }
+
+  // -----------------------------------------------------
+  // SLIDER CRUD
+  // -----------------------------------------------------
+
+  createSliders(body: { sliders: any[] }): Observable<any> {
+    return this.http.post(
+      `${this.baseAdmin}/slider`,
+      body,
+      { withCredentials: true }
+    );
+  }
+
+  // Required so slider-uploader.component.ts works (alias)
+  saveSlider(body: any): Observable<any> {
+    return this.createSliders(body);
+  }
+
+  getSliders(): Observable<any> {
+    return this.http.get(
+      `${this.baseAdmin}/slider`,
+      { withCredentials: true }
+    );
+  }
+
+  deleteSlider(id: string): Observable<any> {
+    return this.http.delete(
+      `${this.baseAdmin}/slider/${id}`,
       { withCredentials: true }
     );
   }

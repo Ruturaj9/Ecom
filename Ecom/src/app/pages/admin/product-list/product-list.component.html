@@ -1,0 +1,41 @@
+<div class="p-4">
+  <h2 class="text-2xl font-semibold mb-4">Products</h2>
+
+  <table class="w-full border">
+    <thead>
+      <tr class="bg-gray-100">
+        <th class="p-2 border">Image</th>
+        <th class="p-2 border">Title</th>
+        <th class="p-2 border">Price</th>
+        <th class="p-2 border">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let p of products">
+        <td class="border p-2">
+          <img [src]="p.images?.[0]" class="w-16 h-16 object-cover" />
+        </td>
+
+        <td class="border p-2">{{ p.title }}</td>
+        <td class="border p-2">{{ p.price }}</td>
+
+        <td class="border p-2 space-x-2">
+          <button
+            class="px-2 py-1 bg-blue-600 text-white rounded"
+            (click)="editProduct(p._id)"
+          >
+            Edit
+          </button>
+
+          <button
+            class="px-2 py-1 bg-red-600 text-white rounded"
+            (click)="deleteProduct(p._id)"
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

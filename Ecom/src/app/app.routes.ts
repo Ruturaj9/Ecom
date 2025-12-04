@@ -1,17 +1,20 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { AdminGuard } from './guards/admin.guard';
 
+// Correct path for layout (inside pages/admin)
+import { AdminLayoutComponent } from './pages/admin/admin-layout/admin-layout.component';
+
 export const routes: Routes = [
 
-  // Public Routes
+  // Public home page
   {
     path: '',
     component: HomeComponent,
     pathMatch: 'full'
   },
 
+  // PUBLIC ROUTES
   {
     path: 'products',
     loadComponent: () =>
@@ -40,19 +43,26 @@ export const routes: Routes = [
         .then(m => m.LoginComponent)
   },
 
-  // Admin Section
+  // --------------------------
+  // ADMIN ROUTES
+  // --------------------------
   {
     path: 'admin',
+    component: AdminLayoutComponent,
     canActivate: [AdminGuard],
-    loadComponent: () =>
-      import('./pages/admin/admin-layout/admin-layout.component')
-        .then(m => m.AdminLayoutComponent),
     children: [
       {
         path: '',
         loadComponent: () =>
-          import('./pages/admin/admin-home/admin-home.component')
-            .then(m => m.AdminHomeComponent)
+          import('./pages/admin/dashboard/admin-dashboard.component')
+            .then(m => m.AdminDashboardComponent)
+      },
+
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./pages/admin/product-list/product-list.component')
+            .then(m => m.ProductListComponent)
       },
 
       {
@@ -63,19 +73,28 @@ export const routes: Routes = [
       },
 
       {
+        path: 'sliders',
+        loadComponent: () =>
+          import('./pages/admin/slider-list/slider-list.component')
+            .then(m => m.SliderListComponent)
+      },
+
+      {
         path: 'slider-upload',
         loadComponent: () =>
           import('./pages/admin/slider-uploader/slider-uploader.component')
             .then(m => m.SliderUploaderComponent)
       },
 
-      // Missing pages will be added later
+      {
+        path: 'logs',
+        loadComponent: () =>
+          import('./pages/admin/audit-logs/audit-logs.component')
+            .then(m => m.AuditLogsComponent)
+      }
     ]
   },
 
-  // 404 fallback
-  {
-    path: '**',
-    redirectTo: ''
-  }
+  // Fallback
+  { path: '**', redirectTo: '' }
 ];
