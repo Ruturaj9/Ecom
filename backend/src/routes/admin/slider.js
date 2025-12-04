@@ -50,37 +50,37 @@ router.post(
   '/',
   requireAdmin(['admin']),
   [
-    body().isArray({ min: 1 }),
-    body('*.imageUrl').isString().notEmpty(),
-    body('*.title').optional().isString(),
-    body('*.subtitle').optional().isString(),
-    body('*.buttonText').optional().isString(),
-    body('*.buttonLink').optional().isString(),
-    body('*.order').optional().isInt(),
-    body('*.active').optional().isBoolean()
+    body('sliders').isArray({ min: 1 }),
+    body('sliders.*.imageUrl').isString().notEmpty(),
+    body('sliders.*.title').optional().isString(),
+    body('sliders.*.subtitle').optional().isString(),
+    body('sliders.*.buttonText').optional().isString(),
+    body('sliders.*.buttonLink').optional().isString(),
+    body('sliders.*.order').optional().isInt(),
+    body('sliders.*.active').optional().isBoolean()
   ],
   validateRequest,
   async (req, res, next) => {
     try {
-      const sliders = req.body;
-
-      // Clear existing slider items
-      await Slider.deleteMany({});
+      const { sliders } = req.body;
 
       const created = [];
+
       for (let i = 0; i < sliders.length; i++) {
         const s = sliders[i];
 
-        const slide = await Slider.create({
+        const doc = {
           title: s.title || '',
           subtitle: s.subtitle || '',
           buttonText: s.buttonText || '',
           buttonLink: s.buttonLink || '',
           imageUrl: s.imageUrl,
-          order: s.order || i + 1,
+          order: s.order || (await Slider.countDocuments()) + 1,
           active: s.active ?? true,
           createdBy: req.admin.id
-        });
+        };
+
+        const saved = await Slider.create(doc);
 
         await auditLogger({
           req,
@@ -88,12 +88,12 @@ router.post(
           actorEmail: req.admin.email,
           action: 'slider.create',
           resourceType: 'Slider',
-          resourceId: slide._id,
+          resourceId: saved._id,
           before: null,
-          after: slide
+          after: saved
         });
 
-        created.push(slide);
+        created.push(saved);
       }
 
       return res.status(201).json({ sliders: created });
@@ -103,6 +103,7 @@ router.post(
     }
   }
 );
+
 
 /**
  * List sliders (admin)

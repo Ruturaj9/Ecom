@@ -66,33 +66,33 @@ export class ProductService {
   }
 
   // -----------------------------------------------------
-  // SLIDER CRUD
-  // -----------------------------------------------------
+// SLIDER CRUD
+// -----------------------------------------------------
 
-  createSliders(body: { sliders: any[] }): Observable<any> {
-    return this.http.post(
-      `${this.baseAdmin}/slider`,
-      body,
-      { withCredentials: true }
-    );
-  }
+createSliders(sliders: any[]): Observable<any> {
+  return this.http.post(
+    `${this.baseAdmin}/slider`,
+    { sliders },
+    { withCredentials: true }
+  );
+}
 
-  // Required so slider-uploader.component.ts works (alias)
-  saveSlider(body: any): Observable<any> {
-    return this.createSliders(body);
-  }
+// alias used by slider-uploader.component.ts
+saveSlider(body: any[]): Observable<any> {
+  return this.createSliders(body);
+}
 
-  getSliders(): Observable<any> {
-    return this.http.get(
-      `${this.baseAdmin}/slider`,
-      { withCredentials: true }
-    );
-  }
+getSliders(): Observable<any> {
+  return this.http.get(
+    `${this.baseAdmin}/slider`,
+    { withCredentials: true }
+  );
+}
 
-  deleteSlider(id: string): Observable<any> {
-    return this.http.delete(
-      `${this.baseAdmin}/slider/${id}`,
-      { withCredentials: true }
-    );
-  }
+deleteSlider(id: string): Observable<any> {
+  return this.http.delete(
+    `${this.baseAdmin}/slider/${id}`,
+    { withCredentials: true }
+  );
+}
 }

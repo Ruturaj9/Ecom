@@ -1,54 +1,66 @@
 // src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap, catchError, of } from 'rxjs';
+import { BehaviorSubject, catchError, map, of, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private baseUrl = 'http://localhost:4000';
 
   csrfToken: string | null = null;
-  currentUser: any = null; // stores logged in user
+
+  // Stores logged-in user reactively
+  private userSubject = new BehaviorSubject<any | null>(null);
+  user$ = this.userSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
   // ---------------------------------------------------
-  // 1) CSRF Token (required before login)
+  // CSRF TOKEN
   // ---------------------------------------------------
   loadCsrfToken() {
-    return this.http.get<{ csrfToken: string }>(
-      `${this.baseUrl}/auth/csrf-token`,
-      { withCredentials: true }
-    ).pipe(
-      tap(res => {
-        this.csrfToken = res.csrfToken;
+    return this.http
+      .get<{ csrfToken: string }>(`${this.baseUrl}/auth/csrf-token`, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((res) => {
+          this.csrfToken = res.csrfToken;
+        })
+      );
   }
 
   // ---------------------------------------------------
-  // 2) LOGIN — backend sets cookies
+  // LOGIN
   // ---------------------------------------------------
   login(email: string, password: string) {
     if (!this.csrfToken) {
-      throw new Error('CSRF token not loaded. Call loadCsrfToken() first.');
+      throw new Error('CSRF token not loaded.');
     }
 
-    return this.http.post(
-      `${this.baseUrl}/auth/login`,
-      { email, password },
-      {
-        withCredentials: true,
-        headers: { 'X-CSRF-Token': this.csrfToken }
-      }
-    );
+    return this.http
+      .post(
+        `${this.baseUrl}/auth/login`,
+        { email, password },
+        {
+          withCredentials: true,
+          headers: { 'X-CSRF-Token': this.csrfToken },
+        }
+      )
+      .pipe(
+        tap(() => {
+          // After login, fetch logged user
+          this.getMe().subscribe();
+        })
+      );
   }
 
   // ---------------------------------------------------
-  // 3) LOGOUT — clears cookies server-side
+  // LOGOUT
   // ---------------------------------------------------
   logout() {
-    this.currentUser = null;
+    this.userSubject.next(null);
+
     return this.http.post(
       `${this.baseUrl}/auth/logout`,
       {},
@@ -57,46 +69,46 @@ export class AuthService {
   }
 
   // ---------------------------------------------------
-  // 4) GET CURRENT USER (uses accessToken cookie)
+  // FETCH CURRENT USER
   // ---------------------------------------------------
   getMe() {
-    return this.http.get<{ user: any }>(
-      `${this.baseUrl}/auth/me`,
-      { withCredentials: true }
-    )
-    .pipe(
-      tap(res => {
-        this.currentUser = res.user;
-      }),
-      catchError(() => {
-        this.currentUser = null;
-        return of(null);
+    return this.http
+      .get<{ user: any }>(`${this.baseUrl}/auth/me`, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((res) => {
+          this.userSubject.next(res.user);
+        }),
+        catchError(() => {
+          this.userSubject.next(null);
+          return of(null);
+        })
+      );
   }
 
   // ---------------------------------------------------
-  // 5) Return true if logged user is admin
+  // PURE ADMIN CHECK
   // ---------------------------------------------------
-  isAdmin(): boolean {
-    return !!(
-      this.currentUser &&
-      Array.isArray(this.currentUser.roles) &&
-      this.currentUser.roles.includes('admin')
-    );
+  private checkAdmin(user: any): boolean {
+    return !!(user && Array.isArray(user.roles) && user.roles.includes('admin'));
   }
 
   // ---------------------------------------------------
-  // 6) Used by route guards — ensures /auth/me is loaded
+  // ⭐ FIXED — USED BY GUARD
+  // ensureMe() MUST return Observable<boolean>
   // ---------------------------------------------------
-  ensureMe(): Promise<boolean> {
-    return new Promise(resolve => {
-      if (this.currentUser) return resolve(this.isAdmin());
+  ensureMe() {
+    const existingUser = this.userSubject.value;
 
-      this.getMe().subscribe({
-        next: () => resolve(this.isAdmin()),
-        error: () => resolve(false)
-      });
-    });
+    // Case 1: Already loaded → return Observable<boolean>
+    if (existingUser) {
+      return of(this.checkAdmin(existingUser));
+    }
+
+    // Case 2: Need to fetch user → return Observable<boolean>
+    return this.getMe().pipe(
+      map(() => this.checkAdmin(this.userSubject.value))
+    );
   }
 }

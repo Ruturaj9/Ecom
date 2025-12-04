@@ -1,17 +1,14 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { AdminGuard } from './guards/admin.guard';
-
-// Correct path for layout (inside pages/admin)
 import { AdminLayoutComponent } from './pages/admin/admin-layout/admin-layout.component';
 
 export const routes: Routes = [
 
-  // Public home page
   {
     path: '',
     component: HomeComponent,
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
 
   // PUBLIC ROUTES
@@ -51,50 +48,51 @@ export const routes: Routes = [
     component: AdminLayoutComponent,
     canActivate: [AdminGuard],
     children: [
-      {
-        path: '',
+
+      { path: '',
         loadComponent: () =>
           import('./pages/admin/dashboard/admin-dashboard.component')
-            .then(m => m.AdminDashboardComponent)
+            .then(m => m.AdminDashboardComponent),
+        // ensure re-run when navigating to same child route
+        runGuardsAndResolvers: 'always'
       },
 
-      {
-        path: 'products',
+      { path: 'products',
         loadComponent: () =>
           import('./pages/admin/product-list/product-list.component')
-            .then(m => m.ProductListComponent)
+            .then(m => m.ProductListComponent),
+        runGuardsAndResolvers: 'always'
       },
 
-      {
-        path: 'upload',
+      { path: 'upload',
         loadComponent: () =>
           import('./pages/admin/product-uploader/product-uploader.component')
-            .then(m => m.ProductUploaderComponent)
+            .then(m => m.ProductUploaderComponent),
+        runGuardsAndResolvers: 'always'
       },
 
-      {
-        path: 'sliders',
+      { path: 'sliders',
         loadComponent: () =>
           import('./pages/admin/slider-list/slider-list.component')
-            .then(m => m.SliderListComponent)
+            .then(m => m.SliderListComponent),
+        runGuardsAndResolvers: 'always'
       },
 
-      {
-        path: 'slider-upload',
+      { path: 'slider-upload',
         loadComponent: () =>
           import('./pages/admin/slider-uploader/slider-uploader.component')
-            .then(m => m.SliderUploaderComponent)
+            .then(m => m.SliderUploaderComponent),
+        runGuardsAndResolvers: 'always'
       },
 
-      {
-        path: 'logs',
+      { path: 'logs',
         loadComponent: () =>
           import('./pages/admin/audit-logs/audit-logs.component')
-            .then(m => m.AuditLogsComponent)
+            .then(m => m.AuditLogsComponent),
+        runGuardsAndResolvers: 'always'
       }
     ]
   },
 
-  // Fallback
   { path: '**', redirectTo: '' }
 ];
