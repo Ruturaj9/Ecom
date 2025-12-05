@@ -1,0 +1,88 @@
+/* General interactive cursor ensures pointer on a11y elements */
+a, button {
+  @apply cursor-pointer;
+}
+
+/* Column title */
+.col-title {
+  @apply text-sm font-semibold text-emerald-100;
+}
+
+/* Column links — subtle underline grow + lift */
+.col-link {
+  @apply block text-emerald-200/90 text-sm transition duration-250 ease-in-out;
+  position: relative;
+  padding: 2px 0;
+}
+
+/* underline effect via pseudo element, using Tailwind utilities where possible */
+.col-link::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: width 220ms ease;
+  margin-top: 6px;
+}
+.col-link:hover::after,
+.col-link:focus::after {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* tiny footer links */
+.tiny-link {
+  @apply text-emerald-200/70 text-xs hover:text-emerald-100 transition;
+}
+
+/* Social pill: soft glass, hover lift, glow */
+.social-pill {
+  @apply inline-flex items-center justify-center h-9 w-9 rounded-full bg-emerald-800/40 border border-emerald-700/40 text-emerald-50 transition-transform transition-shadow;
+  transform-origin: center;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.25);
+}
+.social-pill:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 14px 36px rgba(2,6,23,0.35);
+  background: linear-gradient(180deg, rgba(16,185,129,0.12), rgba(6,95,70,0.08));
+}
+
+/* CTA button */
+.btn-cta {
+  @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-amber-400 text-emerald-900 font-semibold shadow-sm hover:shadow-md transition-transform duration-200;
+}
+.btn-cta:hover {
+  transform: translateY(-2px);
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .social-pill,
+  .btn-cta,
+  .col-link,
+  .social-pill:hover,
+  .btn-cta:hover {
+    transition: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Focus outlines for keyboard users */
+a:focus-visible,
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.12);
+  border-radius: 8px;
+}
+
+/* Small devices — more compact spacing */
+@media (max-width: 640px) {
+  .col-title {
+    @apply text-sm font-semibold;
+  }
+  .social-pill {
+    @apply h-8 w-8;
+  }
+}

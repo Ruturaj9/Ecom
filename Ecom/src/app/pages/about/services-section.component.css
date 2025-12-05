@@ -1,0 +1,16 @@
+/* Fade-in on load */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+:host {
+  display: block;
+  animation: fadeInUp 0.55s ease-out;
+}
+
+/* Prevent scroll flicker */
+* {
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}

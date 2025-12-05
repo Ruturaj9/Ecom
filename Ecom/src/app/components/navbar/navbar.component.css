@@ -1,0 +1,29 @@
+.nav-link {
+  @apply text-zinc-700 text-sm font-medium hover:text-emerald-600 transition relative;
+}
+.nav-link::after {
+  content: '';
+  @apply absolute left-0 -bottom-1 w-0 h-0.5 bg-emerald-600 transition-all duration-300;
+}
+.nav-link:hover::after {
+  @apply w-full;
+}
+
+.mobile-link {
+  @apply block text-zinc-700 text-base font-medium hover:text-emerald-600 transition;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
