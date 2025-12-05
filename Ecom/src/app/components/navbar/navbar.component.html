@@ -1,197 +1,174 @@
-<nav class="bg-white shadow-sm sticky top-0 z-50">
+<!-- TOP NAVBAR (Row 1) -->
+<nav class="bg-white shadow sticky top-0 z-50 border-b">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-20 items-center">
 
-      <!-- Logo + Name -->
-      <a routerLink="/" class="flex items-center gap-4">
+    <div class="flex justify-between items-center h-20">
+
+      <!-- LEFT: Logos + Name -->
+      <a routerLink="/" class="flex items-center gap-3">
+
+        <!-- First Logo -->
         <img
           src="Himalaya_logo.png"
           alt="Himalaya Logo"
-          class="w-12 h-12 md:w-14 md:h-14 object-contain rounded"
+          class="w-12 h-12 object-contain rounded"
         />
 
+        <!-- Second Logo (Added Back) -->
         <img
           src="logo2.jpeg"
           alt="Company Logo"
-          class="w-12 h-12 md:w-14 md:h-14 object-contain rounded hidden sm:block"
+          class="w-12 h-12 object-contain rounded hidden sm:block"
         />
 
-        <div class="leading-tight">
-          <div class="font-bold text-base md:text-lg text-gray-800">
+        <div class="leading-tight hidden md:block">
+          <div class="font-semibold text-gray-800 text-sm">
             Sahasya Farmer's Produce Pvt Ltd
           </div>
-          <div class="font-bold text-base md:text-lg text-green-700">
+          <div class="font-bold text-green-700 text-sm">
             Himalaya Agro
-          </div>
-          <div class="text-xs text-gray-500 mt-0.5">
-            Farm to table marketplace
           </div>
         </div>
       </a>
 
-      <!-- Desktop Menu -->
-      <div class="hidden md:flex md:items-center md:gap-6">
+      <!-- CENTER: Navigation -->
+      <div class="hidden md:flex gap-6">
 
-        <a routerLink="/" class="text-gray-700 hover:text-green-600">Home</a>
+        <a routerLink="/" class="hover:text-green-600 text-gray-700">Home</a>
 
-        <!-- Category Dropdown -->
-        <div class="relative group">
-          <button class="text-gray-700 hover:text-green-600 flex items-center gap-1">
-            Categories <span class="text-sm">▾</span>
-          </button>
+        <a routerLink="/about" fragment="about"
+           class="hover:text-green-600 text-gray-700">About</a>
 
-          <div
-            class="absolute left-0 mt-2 w-40 bg-white shadow-lg rounded-lg py-2
-                   invisible opacity-0 group-hover:visible group-hover:opacity-100
-                   transition-all z-20"
-          >
-            @for (c of categories; track $index) {
-              <button
-                (click)="goToCategory(c)"
-                class="w-full text-left px-4 py-2 hover:bg-green-50 text-gray-700"
-              >
-                {{ c }}
-              </button>
-            }
-          </div>
-        </div>
+        <a routerLink="/about" fragment="services"
+           class="hover:text-green-600 text-gray-700">Services</a>
 
-        <!-- ✔ UPDATED: About + Services with fragments -->
-        <a routerLink="/about" fragment="about" class="text-gray-700 hover:text-green-600">About</a>
+        <a routerLink="/retail-services" fragment="top"
+           class="hover:text-green-600 text-gray-700">Retail Services</a>
 
-        <a routerLink="/about" fragment="services" class="text-gray-700 hover:text-green-600">
-          Services
-        </a>
-
-        <!-- Search -->
-        <div class="relative">
-          <input
-            type="search"
-            placeholder="Search products..."
-            class="px-3 py-2 rounded-lg border w-80 focus:outline-none focus:ring-2 focus:ring-green-400"
-            [(ngModel)]="searchText"
-            (keydown.enter)="doSearch()"
-          />
-
-          <button
-            (click)="doSearch()"
-            class="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-green-50"
-            aria-label="Search"
-            type="button"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none"
-              viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Cart + Account -->
-        <div class="flex items-center gap-4">
-
-          <a routerLink="/cart" class="relative">
-            <svg xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 text-gray-700 hover:text-green-600"
-              fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6a4 4 0 10-8 0v7" />
-            </svg>
-
-            @if (cartCount > 0) {
-              <span
-                class="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                {{ cartCount }}
-              </span>
-            }
-          </a>
-
-          <button class="p-2 rounded-full hover:bg-green-50 border text-gray-700" aria-label="Account">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-              viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M5.121 17.804A9 9 0 1118.878 6.196M12 14a4 4 0 110-8 4 4 0 010 8zm0 0c-4.418 0-8 2.015-8 4.5V21h16v-2.5c0-2.485-3.582-4.5-8-4.5z" />
-            </svg>
-          </button>
-        </div>
+        <a routerLink="/retail-services" fragment="contact"
+           class="hover:text-green-600 text-gray-700">Contact Us</a>
 
       </div>
 
-      <!-- Mobile Toggle Button -->
-      <button class="md:hidden p-2 rounded-md border" (click)="toggleMobile()">
-        @if (!mobileOpen) {
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 8h16M4 16h16" />
-          </svg>
-        }
-        @if (mobileOpen) {
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        }
-      </button>
+      <!-- RIGHT: Cart + Account -->
+      <div class="flex items-center gap-4">
 
+        <!-- Cart -->
+        <a routerLink="/cart" class="relative hover:text-green-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6a4 4 0 10-8 0v7" />
+          </svg>
+
+          @if (cartCount > 0) {
+            <span class="absolute -top-2 -right-2 bg-red-600 text-white
+                         text-xs px-1.5 py-0.5 rounded-full">
+              {{ cartCount }}
+            </span>
+          }
+        </a>
+
+        <!-- Account Icon -->
+        <button class="hover:bg-green-50 p-2 rounded-full border text-gray-700" aria-label="Account">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5.121 17.804A9 9 0 1118.878 6.196M12 14a4 4 0 110-8
+                 4 4 0 010 8zm0 0c-4.418 0-8 2.015-8 4.5V21h16v-2.5
+                 c0-2.485-3.582-4.5-8-4.5z" />
+          </svg>
+        </button>
+
+        <!-- MOBILE MENU BUTTON -->
+        <button class="md:hidden p-2 rounded-md border" (click)="toggleMobile()">
+          @if (!mobileOpen) {
+            <svg class="h-6 w-6" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 8h16M4 16h16" />
+            </svg>
+          }
+          @if (mobileOpen) {
+            <svg class="h-6 w-6" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          }
+        </button>
+
+      </div>
     </div>
   </div>
 
-  <!-- MOBILE MENU -->
-  @if (mobileOpen) {
-  <div class="md:hidden border-t bg-white">
-    <div class="px-4 py-3 space-y-3">
+  <!-- SECOND ROW: Search + Categories -->
+  <div class="bg-gray-50 border-t">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-4">
 
-      <a routerLink="/" (click)="toggleMobile()" class="block text-gray-700">
-        Home
-      </a>
+      <!-- Categories Button -->
+      <div class="relative group">
+        <button class="px-3 py-2 bg-white border rounded-lg shadow-sm hover:bg-green-50
+                        flex items-center gap-2 text-sm">
+          <span class="font-medium">Categories</span>
+          <span>▾</span>
+        </button>
 
-      <div>
-        <div class="font-medium text-gray-700">Categories</div>
-        <div class="space-y-1 pl-2 mt-1">
+        <!-- Dropdown -->
+        <div
+          class="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 invisible opacity-0
+                 group-hover:visible group-hover:opacity-100 transition z-30">
           @for (c of categories; track $index) {
             <button
               (click)="goToCategory(c)"
-              class="block w-full text-left px-3 py-1 rounded hover:bg-green-50"
-            >
+              class="w-full text-left px-4 py-2 hover:bg-green-50 text-gray-700 text-sm">
               {{ c }}
             </button>
           }
         </div>
       </div>
 
-      <!-- ✔ About + Services -->
-      <a routerLink="/about" fragment="about" (click)="toggleMobile()" class="block text-gray-700">
-        About
-      </a>
+      <!-- Search Bar (Smaller & Clean) -->
+      <div class="flex-1 relative max-w-xl ml-auto">
+        <input
+          type="search"
+          placeholder="Search products..."
+          class="w-full px-3 py-2 border rounded-lg shadow-sm text-sm
+                 focus:outline-none focus:ring-2 focus:ring-green-500"
+          [(ngModel)]="searchText"
+          (keydown.enter)="doSearch()"
+        />
 
-      <a routerLink="/about" fragment="services" (click)="toggleMobile()" class="block text-gray-700">
-        Services
-      </a>
-
-      <input
-        type="search"
-        placeholder="Search..."
-        class="w-full px-3 py-2 rounded-lg border mt-2"
-        [(ngModel)]="searchText"
-        (keydown.enter)="doSearch()"
-      />
-
-      <a routerLink="/cart" (click)="toggleMobile()" class="block text-gray-700">
-        🛒 Cart ({{ cartCount }})
-      </a>
-
-      <button class="w-full flex items-center gap-2 px-3 py-2 rounded-lg border" aria-label="Account">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-          fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M5.121 17.804A9 9 0 1118.878 6.196M12 14a4 4 0 110-8 4 4 0 010 8zm0 0c-4.418 0-8 2.015-8 4.5V21h16v-2.5c0-2.485-3.582-4.5-8-4.5z" />
-        </svg>
-        Account
-      </button>
+        <button
+          (click)="doSearch()"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-green-600 text-lg">
+          🔍
+        </button>
+      </div>
 
     </div>
+  </div>
+
+  <!-- MOBILE MENU LINKS -->
+  @if (mobileOpen) {
+  <div class="md:hidden bg-white border-t py-3 px-4 space-y-3">
+
+    <a routerLink="/" (click)="toggleMobile()" class="block text-gray-700">Home</a>
+
+    <a routerLink="/about" fragment="about" (click)="toggleMobile()" class="block text-gray-700">
+      About
+    </a>
+
+    <a routerLink="/about" fragment="services" (click)="toggleMobile()" class="block text-gray-700">
+      Services
+    </a>
+
+    <a routerLink="/retail-services" fragment="top" (click)="toggleMobile()" class="block text-gray-700">
+      Retail Services
+    </a>
+
+    <a routerLink="/retail-services" fragment="contact" (click)="toggleMobile()" class="block text-gray-700">
+      Contact Us
+    </a>
+
   </div>
   }
 </nav>

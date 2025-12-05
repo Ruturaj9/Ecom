@@ -40,12 +40,20 @@ export const routes: Routes = [
         .then(m => m.LoginComponent)
   },
 
-  // ⭐ NEW ABOUT PAGE ROUTE ⭐
+  // ⭐ ABOUT PAGE ROUTE ⭐
   {
     path: 'about',
     loadComponent: () =>
       import('./pages/about/about.component')
         .then(m => m.AboutComponent)
+  },
+
+  // ⭐ NEW — RETAIL SERVICES PAGE ⭐
+  {
+    path: 'retail-services',
+    loadComponent: () =>
+      import('./pages/retail-services/retail-services.component')
+        .then(m => m.RetailServicesComponent)
   },
 
   // --------------------------
@@ -107,5 +115,6 @@ export const routes: Routes = [
     ]
   },
 
+  // ⚠ MUST REMAIN LAST
   { path: '**', redirectTo: '' }
 ];
