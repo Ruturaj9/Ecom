@@ -1,13 +1,14 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ProductService } from '../../../services/product.service';
 import { finalize } from 'rxjs/operators';
 
 interface SlidePreview {
   file?: File;
-  url: string;
+  url: string;          // Cloudinary URL ONLY (no Base64)
+  tempPreview?: string; // Local Blob URL for preview
   title?: string;
   subtitle?: string;
   buttonText?: string;
@@ -19,153 +20,164 @@ interface SlidePreview {
 @Component({
   selector: 'app-slider-uploader',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './slider-uploader.component.html',
 })
 export class SliderUploaderComponent {
 
-  previews: SlidePreview[] = [];
-  uploading = false;
-  message = '';
+  previews = signal<SlidePreview[]>([]);
+  uploading = signal(false);
+  message = signal('');
 
   constructor(
     private productSvc: ProductService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  // -------------------------
-  // SELECT FILES
-  // -------------------------
+  // ---------------------------------------
+  // SELECT FILES → AUTO-UPLOAD
+  // ---------------------------------------
   onFilesSelected(ev: Event): void {
     const input = ev.target as HTMLInputElement | null;
     if (!input?.files) return;
 
-    this.addFiles(Array.from(input.files));
+    const files = Array.from(input.files);
     input.value = '';
+
+    this.autoUpload(files);
   }
 
-  // -------------------------
-  // CREATE LOCAL PREVIEW
-  // -------------------------
-  addFiles(files: File[]): void {
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
+  // ---------------------------------------
+  // AUTO UPLOAD — removes Base64 completely
+  // ---------------------------------------
+  autoUpload(files: File[]) {
+    if (files.length === 0) return;
 
-      const reader = new FileReader();
-      const preview: SlidePreview = { file, url: '' };
+    this.uploading.set(true);
 
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          preview.url = reader.result;
-          this.previews = [...this.previews, preview];
-          this.cdr.markForCheck();
+    // Create blob preview
+    files.forEach(file => {
+      const blobURL = URL.createObjectURL(file);
+
+      this.previews.update(list => [
+        ...list,
+        {
+          file,
+          tempPreview: blobURL,
+          url: '',
+          uploading: true,
+          uploaded: false,
         }
-      };
-
-      reader.readAsDataURL(file);
-    }
-  }
-
-  // -------------------------
-  // DRAG-DROP REORDER
-  // -------------------------
-  drop(event: CdkDragDrop<SlidePreview[]>): void {
-    const arr = [...this.previews];
-    moveItemInArray(arr, event.previousIndex, event.currentIndex);
-    this.previews = arr;
-    this.cdr.markForCheck();
-  }
-
-  // -------------------------
-  // REMOVE SLIDE
-  // -------------------------
-  removePreview(i: number): void {
-    const arr = [...this.previews];
-    arr.splice(i, 1);
-    this.previews = arr;
-    this.cdr.markForCheck();
-  }
-
-  // -------------------------
-  // UPLOAD IMAGES TO CLOUDINARY
-  // -------------------------
-  uploadToServer(): void {
-    const files = this.previews.filter(p => p.file).map(p => p.file!);
-
-    if (files.length === 0) {
-      this.message = 'No new images to upload.';
-      return;
-    }
-
-    this.uploading = true;
-    this.previews = this.previews.map(p => p.file ? { ...p, uploading: true } : p);
+      ]);
+    });
 
     this.productSvc.uploadSliderImages(files)
-      .pipe(finalize(() => { this.uploading = false; this.cdr.detectChanges(); }))
+      .pipe(finalize(() => this.uploading.set(false)))
       .subscribe({
         next: (res: { urls: string[] }) => {
-          let idx = 0;
-
-          this.previews = this.previews.map(p => {
-            if (p.file) {
-              const newUrl = res.urls[idx++];
-              return {
-                ...p,
-                url: newUrl,
-                file: undefined,
-                uploaded: true,
-                uploading: false
-              };
-            }
-            return p;
-          });
-
-          this.message = 'Upload complete.';
+          let i = 0;
+          this.previews.update(list =>
+            list.map(item => {
+              if (item.file && !item.uploaded) {
+                const cloudUrl = res.urls[i++];
+                return {
+                  ...item,
+                  url: cloudUrl,
+                  file: undefined,
+                  tempPreview: undefined,
+                  uploading: false,
+                  uploaded: true
+                };
+              }
+              return item;
+            })
+          );
         },
-        error: (err) => {
-          console.error(err);
-          this.message = err?.error?.message || 'Upload failed.';
-          this.previews = this.previews.map(p => ({ ...p, uploading: false }));
+        error: () => {
+          this.message.set('Upload failed.');
+          this.previews.update(list =>
+            list.filter(p => p.uploaded)
+          );
         }
       });
   }
 
-  // -------------------------
-  // ADD EXTERNAL URL
-  // -------------------------
-  addExternalUrl(url: string): void {
+  // ---------------------------------------
+  // ADD EXTERNAL URL (always uploaded)
+  // ---------------------------------------
+  addExternalUrl(url: string) {
     if (!url.trim()) return;
-    this.previews.push({ url: url.trim(), uploaded: true });
-    this.cdr.markForCheck();
+
+    this.previews.update(list => [
+      ...list,
+      {
+        url: url.trim(),
+        uploaded: true
+      }
+    ]);
   }
 
-  // -------------------------
-  // SAVE SLIDER TO BACKEND
-  // -------------------------
-  saveSlider(): void {
-    if (this.previews.length === 0) {
-      this.message = 'No slides to save.';
+  // ---------------------------------------
+  // REMOVE SLIDE
+  // ---------------------------------------
+  removePreview(i: number) {
+    this.previews.update(list => list.filter((_, idx) => idx !== i));
+  }
+
+  // ---------------------------------------
+  // REORDER (Drag Drop)
+  // ---------------------------------------
+  drop(event: CdkDragDrop<SlidePreview[]>) {
+    const list = [...this.previews()];
+    moveItemInArray(list, event.previousIndex, event.currentIndex);
+    this.previews.set(list);
+  }
+
+  // ---------------------------------------
+  // SAVE SLIDER — auto-upload pending files
+  // ---------------------------------------
+  saveSlider() {
+    const list = this.previews();
+
+    if (list.length === 0) {
+      this.message.set('No slides to save.');
       return;
     }
 
-    const payload = this.previews.map((p, index) => ({
-      imageUrl: p.url,
+    // Detect unuploaded or Base64 images
+    const needUpload = list.filter(p =>
+      !p.uploaded ||
+      p.url.startsWith('data:image') ||
+      (!p.url && p.tempPreview)
+    );
+
+    if (needUpload.length > 0) {
+      const files = needUpload
+        .map(p => p.file)
+        .filter(f => !!f) as File[];
+
+      if (files.length > 0) {
+        this.message.set('Uploading pending images...');
+        this.autoUpload(files);
+        return;
+      }
+    }
+
+    // Build payload
+    const payload = list.map((p, index) => ({
+      imageUrl: p.url, // Cloudinary URL ONLY
       title: p.title || '',
       subtitle: p.subtitle || '',
       buttonText: p.buttonText || '',
       buttonLink: p.buttonLink || '',
-      order: index + 1
+      order: index + 1,
+      active: true
     }));
 
     this.productSvc.saveSlider(payload).subscribe({
-      next: () => {
-        this.message = 'Slider saved successfully!';
-      },
-      error: (err) => {
-        console.error(err);
-        this.message = err?.error?.message || 'Failed to save slider.';
-      }
+      next: () => this.message.set('Slider saved successfully!'),
+      error: err =>
+        this.message.set(err?.error?.message || 'Failed to save slider.')
     });
   }
-
 }

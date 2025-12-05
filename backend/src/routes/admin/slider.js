@@ -22,7 +22,7 @@ router.post(
         return res.status(400).json({ error: 'No images uploaded' });
       }
 
-      const urls = req.files.map(f => f.path);
+      const urls = req.files.map((f) => f.path);
 
       await auditLogger({
         req,
@@ -32,7 +32,7 @@ router.post(
         resourceType: 'SliderImage',
         resourceId: null,
         before: null,
-        after: { urls }
+        after: { urls },
       });
 
       res.json({ urls });
@@ -44,7 +44,6 @@ router.post(
 
 /**
  * Save slider items
- * Frontend sends: [ {...}, {...} ]
  */
 router.post(
   '/',
@@ -57,17 +56,18 @@ router.post(
     body('sliders.*.buttonText').optional().isString(),
     body('sliders.*.buttonLink').optional().isString(),
     body('sliders.*.order').optional().isInt(),
-    body('sliders.*.active').optional().isBoolean()
+    body('sliders.*.active').optional().isBoolean(),
   ],
   validateRequest,
   async (req, res, next) => {
     try {
       const { sliders } = req.body;
-
       const created = [];
 
-      for (let i = 0; i < sliders.length; i++) {
-        const s = sliders[i];
+      for (const s of sliders) {
+        const order =
+          s.order ||
+          (await Slider.countDocuments()) + 1;
 
         const doc = {
           title: s.title || '',
@@ -75,9 +75,9 @@ router.post(
           buttonText: s.buttonText || '',
           buttonLink: s.buttonLink || '',
           imageUrl: s.imageUrl,
-          order: s.order || (await Slider.countDocuments()) + 1,
+          order,
           active: s.active ?? true,
-          createdBy: req.admin.id
+          createdBy: req.admin.id,
         };
 
         const saved = await Slider.create(doc);
@@ -90,20 +90,18 @@ router.post(
           resourceType: 'Slider',
           resourceId: saved._id,
           before: null,
-          after: saved
+          after: saved,
         });
 
         created.push(saved);
       }
 
-      return res.status(201).json({ sliders: created });
+      res.status(201).json({ sliders: created });
     } catch (err) {
-      console.error(err);
       next(err);
     }
   }
 );
-
 
 /**
  * List sliders (admin)
@@ -127,7 +125,7 @@ router.put(
     body('buttonLink').optional().isString(),
     body('imageUrl').optional().isURL(),
     body('order').optional().isInt(),
-    body('active').optional().isBoolean()
+    body('active').optional().isBoolean(),
   ],
   validateRequest,
   async (req, res, next) => {
@@ -149,7 +147,7 @@ router.put(
         resourceType: 'Slider',
         resourceId: updated._id,
         before,
-        after: updated
+        after: updated,
       });
 
       res.json({ slider: updated });
@@ -182,7 +180,7 @@ router.delete(
         resourceType: 'Slider',
         resourceId: req.params.id,
         before,
-        after: null
+        after: null,
       });
 
       res.json({ message: 'Deleted' });

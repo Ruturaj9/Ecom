@@ -1,3 +1,4 @@
+// app.js
 const express = require('express');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
@@ -15,16 +16,16 @@ const app = express();
 
 app.use(helmet());
 
-// ⬆ Increase JSON & form size limits (needed for long Cloudinary URLs)
+// Increase request size limit
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 app.use(cookieParser());
 
-// ⬆ Fix CORS so cookies work
+// CORS for Angular panel
 app.use(
   cors({
-    origin: 'http://localhost:4200', // direct allow for Angular
+    origin: 'http://localhost:4200',
     credentials: true
   })
 );
@@ -46,12 +47,24 @@ app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
+// CSRF endpoint
 app.get("/auth/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
 app.use("/auth", rateLimiter, authRoutes(csrfProtection));
 app.use("/products", productRoutes);
+
+// Public API (Homepage Sliders)
+app.use('/sliders', require('./routes/slider'));   // ✅ FIXED
+
+// Admin API (Protected)
+app.use('/admin/products', require('./routes/admin/products'));
+app.use('/admin/logs', require('./routes/admin/logs'));
+app.use('/admin/categories', require('./routes/admin/categories'));
+app.use('/admin/upload', require('./routes/admin/upload'));
+app.use('/admin/products/upload', require('./routes/admin/productImages'));
+app.use('/admin/slider', requireAdmin(['admin']), require('./routes/admin/slider'));
 
 app.get("/", (req, res) => {
   res.json({
@@ -60,6 +73,7 @@ app.get("/", (req, res) => {
   });
 });
 
+// Example POST for debugging
 app.post("/test-insert-product", async (req, res) => {
   try {
     const product = await Product.create({
@@ -77,6 +91,7 @@ app.post("/test-insert-product", async (req, res) => {
   }
 });
 
+// Protect admin test route
 app.get('/admin/test', requireAdmin(), (req, res) => {
   res.json({
     message: 'Admin access verified',
@@ -84,15 +99,7 @@ app.get('/admin/test', requireAdmin(), (req, res) => {
   });
 });
 
-// Admin routes
-app.use('/admin/products', require('./routes/admin/products'));
-app.use('/admin/logs', require('./routes/admin/logs'));
-app.use('/admin/categories', require('./routes/admin/categories'));
-app.use('/admin/upload', require('./routes/admin/upload'));
-app.use('/admin/products/upload', require('./routes/admin/productImages'));
-app.use('/admin/slider', require('./routes/admin/slider'));
-app.use('/slider', require('./routes/slider'));
-
+// Error Handler
 app.use(errorHandler);
 
 module.exports = app;
