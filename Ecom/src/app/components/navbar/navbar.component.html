@@ -1,5 +1,5 @@
-<!-- TOP NAVBAR (Row 1) -->
-<nav class="bg-white shadow sticky top-0 z-50 border-b">
+<!-- TOP NAVBAR -->
+<nav class="bg-white shadow-sm sticky top-0 z-50 border-b">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
     <div class="flex justify-between items-center h-20">
@@ -7,19 +7,9 @@
       <!-- LEFT: Logos + Name -->
       <a routerLink="/" class="flex items-center gap-3">
 
-        <!-- First Logo -->
-        <img
-          src="Himalaya_logo.png"
-          alt="Himalaya Logo"
-          class="w-12 h-12 object-contain rounded"
-        />
+        <img src="Himalaya_logo.png" class="w-12 h-12 object-contain" />
 
-        <!-- Second Logo (Added Back) -->
-        <img
-          src="logo2.jpeg"
-          alt="Company Logo"
-          class="w-12 h-12 object-contain rounded hidden sm:block"
-        />
+        <img src="logo2.jpeg" class="w-12 h-12 object-contain hidden sm:block" />
 
         <div class="leading-tight hidden md:block">
           <div class="font-semibold text-gray-800 text-sm">
@@ -31,56 +21,71 @@
         </div>
       </a>
 
-      <!-- CENTER: Navigation -->
-      <div class="hidden md:flex gap-6">
+      <!-- CENTER MENU -->
+      <div class="hidden md:flex items-center gap-8">
 
-        <a routerLink="/" class="hover:text-green-600 text-gray-700">Home</a>
+        <a routerLink="/" class="hover:text-green-600 text-gray-700 text-sm font-medium">Home</a>
 
-        <a routerLink="/about" fragment="about"
-           class="hover:text-green-600 text-gray-700">About</a>
+        <a
+          (click)="navigateWithFragment('/about', 'about')"
+          class="hover:text-green-600 text-gray-700 text-sm font-medium cursor-pointer">
+          About
+        </a>
 
-        <a routerLink="/about" fragment="services"
-           class="hover:text-green-600 text-gray-700">Services</a>
+        <a
+          (click)="navigateWithFragment('/about', 'services')"
+          class="hover:text-green-600 text-gray-700 text-sm font-medium cursor-pointer">
+          Services
+        </a>
 
-        <a routerLink="/retail-services" fragment="top"
-           class="hover:text-green-600 text-gray-700">Retail Services</a>
+        <a
+          (click)="navigateWithFragment('/retail-services', 'top')"
+          class="hover:text-green-600 text-gray-700 text-sm font-medium cursor-pointer">
+          Retail Services
+        </a>
 
-        <a routerLink="/retail-services" fragment="contact"
-           class="hover:text-green-600 text-gray-700">Contact Us</a>
+        <a
+          (click)="navigateWithFragment('/retail-services', 'contact')"
+          class="hover:text-green-600 text-gray-700 text-sm font-medium cursor-pointer">
+          Contact Us
+        </a>
 
       </div>
 
-      <!-- RIGHT: Cart + Account -->
+      <!-- RIGHT: Icons -->
       <div class="flex items-center gap-4">
 
         <!-- Cart -->
-        <a routerLink="/cart" class="relative hover:text-green-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700"
+        <a routerLink="/cart" class="relative hover:text-green-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-gray-700"
             fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6a4 4 0 10-8 0v7" />
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6
+                 a4 4 0 10-8 0v7" />
           </svg>
 
           @if (cartCount > 0) {
-            <span class="absolute -top-2 -right-2 bg-red-600 text-white
-                         text-xs px-1.5 py-0.5 rounded-full">
+            <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs
+                         px-1.5 py-0.5 rounded-full shadow">
               {{ cartCount }}
             </span>
           }
         </a>
 
-        <!-- Account Icon -->
-        <button class="hover:bg-green-50 p-2 rounded-full border text-gray-700" aria-label="Account">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
+        <!-- Account Button -->
+        <button class="p-2 rounded-full hover:bg-green-50 border text-gray-700 transition">
+          <svg xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
             fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5.121 17.804A9 9 0 1118.878 6.196M12 14a4 4 0 110-8
-                 4 4 0 010 8zm0 0c-4.418 0-8 2.015-8 4.5V21h16v-2.5
-                 c0-2.485-3.582-4.5-8-4.5z" />
+              d="M5.121 17.804A9 9 0 1118.878 6.196M12 14a4
+                 4 0 110-8 4 4 0 010 8zm0 0c-4.418 0-8 2.015-8
+                 4.5V21h16v-2.5c0-2.485-3.582-4.5-8-4.5z" />
           </svg>
         </button>
 
-        <!-- MOBILE MENU BUTTON -->
+        <!-- Mobile Toggle -->
         <button class="md:hidden p-2 rounded-md border" (click)="toggleMobile()">
           @if (!mobileOpen) {
             <svg class="h-6 w-6" fill="none" stroke="currentColor">
@@ -100,19 +105,18 @@
     </div>
   </div>
 
-  <!-- SECOND ROW: Search + Categories -->
+  <!-- SECOND ROW (Categories + Search) -->
   <div class="bg-gray-50 border-t">
-    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-4">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-6">
 
-      <!-- Categories Button -->
+      <!-- Categories Dropdown -->
       <div class="relative group">
-        <button class="px-3 py-2 bg-white border rounded-lg shadow-sm hover:bg-green-50
-                        flex items-center gap-2 text-sm">
-          <span class="font-medium">Categories</span>
-          <span>▾</span>
+        <button
+          class="px-3 py-2 bg-white border rounded-lg shadow-sm hover:bg-green-50
+                 flex items-center gap-2 text-sm font-medium">
+          Categories <span>▾</span>
         </button>
 
-        <!-- Dropdown -->
         <div
           class="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 invisible opacity-0
                  group-hover:visible group-hover:opacity-100 transition z-30">
@@ -126,17 +130,16 @@
         </div>
       </div>
 
-      <!-- Search Bar (Smaller & Clean) -->
-      <div class="flex-1 relative max-w-xl ml-auto">
+      <!-- RESPONSIVE SEARCH BAR -->
+      <div class="flex-1 relative max-w-lg ml-auto">
         <input
           type="search"
-          placeholder="Search products..."
+          placeholder="Search products…"
           class="w-full px-3 py-2 border rounded-lg shadow-sm text-sm
                  focus:outline-none focus:ring-2 focus:ring-green-500"
           [(ngModel)]="searchText"
           (keydown.enter)="doSearch()"
         />
-
         <button
           (click)="doSearch()"
           class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-green-600 text-lg">
@@ -147,28 +150,18 @@
     </div>
   </div>
 
-  <!-- MOBILE MENU LINKS -->
+  <!-- MOBILE MENU -->
   @if (mobileOpen) {
   <div class="md:hidden bg-white border-t py-3 px-4 space-y-3">
-
     <a routerLink="/" (click)="toggleMobile()" class="block text-gray-700">Home</a>
 
-    <a routerLink="/about" fragment="about" (click)="toggleMobile()" class="block text-gray-700">
-      About
-    </a>
+    <a (click)="navigateWithFragment('/about', 'about')" class="block text-gray-700">About</a>
 
-    <a routerLink="/about" fragment="services" (click)="toggleMobile()" class="block text-gray-700">
-      Services
-    </a>
+    <a (click)="navigateWithFragment('/about', 'services')" class="block text-gray-700">Services</a>
 
-    <a routerLink="/retail-services" fragment="top" (click)="toggleMobile()" class="block text-gray-700">
-      Retail Services
-    </a>
+    <a (click)="navigateWithFragment('/retail-services', 'top')" class="block text-gray-700">Retail Services</a>
 
-    <a routerLink="/retail-services" fragment="contact" (click)="toggleMobile()" class="block text-gray-700">
-      Contact Us
-    </a>
-
+    <a (click)="navigateWithFragment('/retail-services', 'contact')" class="block text-gray-700">Contact Us</a>
   </div>
   }
 </nav>

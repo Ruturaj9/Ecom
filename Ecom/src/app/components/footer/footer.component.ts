@@ -1,13 +1,35 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './footer.component.html'
 })
 export class FooterComponent {
-  // expose a property for the template to read (Angular templates can't call `new` directly)
   year = new Date().getFullYear();
+
+  constructor(private router: Router) {}
+
+  /** Navigate to top of a page */
+  navigateTop(path: string) {
+    this.router.navigate([path], {
+      fragment: undefined,
+      skipLocationChange: true
+    }).then(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  /** Navigate to a specific section (with fragment refresh fix) */
+  navigate(path: string, fragment: string) {
+    this.router.navigate([path], {
+      fragment: undefined,
+      skipLocationChange: true
+    }).then(() => {
+      this.router.navigate([path], { fragment });
+    });
+  }
 }

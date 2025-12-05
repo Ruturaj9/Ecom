@@ -1,6 +1,6 @@
 import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AboutSectionComponent } from './about-section.component';
 import { ServicesSectionComponent } from './services-section.component';
 
@@ -11,47 +11,37 @@ import { ServicesSectionComponent } from './services-section.component';
   templateUrl: './about.component.html'
 })
 export class AboutComponent implements AfterViewInit {
-  constructor(private route: ActivatedRoute) {}
+
+  constructor(private route: ActivatedRoute, private router: Router) {}
 
   ngAfterViewInit() {
-    // Subscribe to fragment changes (clicking links with fragment or direct URL with #)
-    // Use a small timeout to ensure DOM has rendered.
+    // Force re-navigation even if clicking the same fragment again
+    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
+
     setTimeout(() => {
       this.route.fragment.subscribe(fragment => {
-        // compute navbar height dynamically (handles different screen sizes)
-        const navEl = document.querySelector('nav');
-        const navHeight = navEl ? Math.ceil(navEl.getBoundingClientRect().height) : 0;
-        const extraGap = 10; // a little breathing room so heading isn't flush to nav
 
-        // If no fragment, scroll to top of page (just below navbar)
+        // compute full navbar height (both rows)
+        const navEl = document.querySelector('nav');
+        const navHeight = navEl ? navEl.getBoundingClientRect().height : 0;
+
+        const extraGap = 20;   // breathing space
+        const fullOffset = navHeight + extraGap; // actual offset
+
         if (!fragment) {
-          // scroll to top but leave navbar height offset
-          window.scrollTo({ top: Math.max(0, 0 - navHeight + extraGap), behavior: 'smooth' });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
 
-        // Scroll to the element ID manually with offset
         const el = document.getElementById(fragment);
         if (el) {
-          // Element's position relative to the document
           const rect = el.getBoundingClientRect();
-          const absoluteTop = window.pageYOffset + rect.top;
-          const target = Math.max(0, absoluteTop - navHeight - extraGap);
+          const absolute = window.pageYOffset + rect.top;
+          const target = absolute - fullOffset;
 
           window.scrollTo({ top: target, behavior: 'smooth' });
-        } else {
-          // fallback: let browser try native fragment scroll then adjust a little later
-          setTimeout(() => {
-            const e = document.getElementById(fragment);
-            if (e) {
-              const r = e.getBoundingClientRect();
-              const aTop = window.pageYOffset + r.top;
-              const t = Math.max(0, aTop - navHeight - extraGap);
-              window.scrollTo({ top: t, behavior: 'smooth' });
-            }
-          }, 60);
         }
       });
-    }, 0);
+    }, 50);  // slightly larger delay for layout
   }
 }

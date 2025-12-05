@@ -1,6 +1,6 @@
 import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RetailSectionComponent } from './retail-section.component';
 import { ContactSectionComponent } from './contact-section.component';
 
@@ -12,18 +12,19 @@ import { ContactSectionComponent } from './contact-section.component';
 })
 export class RetailServicesComponent implements AfterViewInit {
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private router: Router) {}
 
   ngAfterViewInit() {
+    // Force navigation even on same fragment clicks
+    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
+
     setTimeout(() => {
       this.route.fragment.subscribe(fragment => {
 
-        // dynamic navbar height fix
-        const nav = document.querySelector('nav');
-        const navHeight = nav ? nav.getBoundingClientRect().height : 0;
-        const gap = 10;
+        const navEl = document.querySelector('nav');
+        const navHeight = navEl ? navEl.getBoundingClientRect().height : 0;
+        const offset = navHeight + 20;
 
-        // no fragment = scroll to top ALWAYS
         if (!fragment) {
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
@@ -32,13 +33,12 @@ export class RetailServicesComponent implements AfterViewInit {
         const el = document.getElementById(fragment);
         if (el) {
           const rect = el.getBoundingClientRect();
-          const absoluteTop = window.pageYOffset + rect.top;
-          const target = absoluteTop - navHeight - gap;
+          const absolute = window.pageYOffset + rect.top;
+          const target = absolute - offset;
 
           window.scrollTo({ top: target, behavior: 'smooth' });
         }
       });
-    }, 0);
+    }, 50);
   }
-
 }

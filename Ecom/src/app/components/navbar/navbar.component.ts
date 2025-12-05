@@ -14,7 +14,6 @@ export class NavbarComponent {
   mobileOpen = false;
 
   categories = ['Vegetables', 'Fruits', 'Grains', 'Dairy', 'Pulses', 'Seeds'];
-
   searchText = '';
 
   constructor(public cart: CartService, private router: Router) {}
@@ -40,5 +39,18 @@ export class NavbarComponent {
 
   clearSearch() {
     this.searchText = '';
+  }
+
+  /** FIX: Always scroll even if clicking same link again */
+  navigateWithFragment(path: string, fragment: string) {
+    this.mobileOpen = false;
+
+    this.router.navigate([path], {
+      fragment: undefined,     // ← FIXED (no null)
+      skipLocationChange: true
+    })
+    .then(() => {
+      this.router.navigate([path], { fragment });
+    });
   }
 }

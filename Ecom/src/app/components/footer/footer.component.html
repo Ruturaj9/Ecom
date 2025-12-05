@@ -1,15 +1,71 @@
-<footer class="bg-white border-t mt-12">
-  <div class="max-w-7xl mx-auto px-4 py-8 text-sm text-gray-600 flex flex-col md:flex-row justify-between items-center">
+<footer class="bg-gradient-to-br from-green-700 to-green-900 text-white pt-16 pb-10 mt-20">
+  <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-14">
 
+    <!-- BRAND SECTION -->
     <div>
-      © {{ year }} ECom — Built with ❤️
+      <h2 class="text-3xl font-extrabold tracking-wide">Himalaya Agro</h2>
+
+      <p class="mt-4 text-sm text-green-100 leading-relaxed">
+        Empowering farmers with innovative agricultural solutions for sustainable growth
+        and prosperity. Delivering trust, technology, and quality to every farm.
+      </p>
+
+      <div class="flex gap-5 mt-6">
+        <a class="text-2xl hover:text-yellow-300 transition cursor-pointer">📘</a>
+        <a class="text-2xl hover:text-yellow-300 transition cursor-pointer">📷</a>
+        <a class="text-2xl hover:text-yellow-300 transition cursor-pointer">🐦</a>
+        <a class="text-2xl hover:text-yellow-300 transition cursor-pointer">💼</a>
+      </div>
     </div>
 
-    <div class="mt-3 md:mt-0 flex gap-4">
-      <a class="hover:text-green-600 cursor-pointer">Privacy</a>
-      <a class="hover:text-green-600 cursor-pointer">Terms</a>
-      <a class="hover:text-green-600 cursor-pointer">Contact</a>
+    <!-- QUICK LINKS -->
+    <div>
+      <h3 class="text-xl font-semibold mb-4 text-white border-b pb-1 border-green-400">
+        Quick Links
+      </h3>
+      <ul class="space-y-3 text-sm">
+        <li><a (click)="navigateTop('/')" class="hover:text-yellow-300 transition cursor-pointer">Home</a></li>
+        <li><a (click)="navigate('/about','about')" class="hover:text-yellow-300 transition cursor-pointer">About</a></li>
+        <li><a (click)="navigate('/about','services')" class="hover:text-yellow-300 transition cursor-pointer">Services</a></li>
+        <li><a routerLink="/products" class="hover:text-yellow-300 transition">Products</a></li>
+      </ul>
     </div>
 
+    <!-- PRODUCT CATEGORIES -->
+    <div>
+      <h3 class="text-xl font-semibold mb-4 text-white border-b pb-1 border-green-400">
+        Products
+      </h3>
+      <ul class="space-y-3 text-sm">
+        <li><a routerLink="/products" [queryParams]="{ category: 'Fertilizers' }"
+               class="hover:text-yellow-300 transition">Fertilizers</a></li>
+        <li><a routerLink="/products" [queryParams]="{ category: 'Seeds' }"
+               class="hover:text-yellow-300 transition">Seeds</a></li>
+        <li><a routerLink="/products" [queryParams]="{ category: 'Equipment' }"
+               class="hover:text-yellow-300 transition">Equipment</a></li>
+        <li><a routerLink="/products" [queryParams]="{ category: 'Organic' }"
+               class="hover:text-yellow-300 transition">Organic Products</a></li>
+      </ul>
+    </div>
+
+    <!-- SUPPORT -->
+    <div>
+      <h3 class="text-xl font-semibold mb-4 text-white border-b pb-1 border-green-400">
+        Support
+      </h3>
+      <ul class="space-y-3 text-sm">
+        <li><a (click)="navigate('/retail-services','contact')" class="hover:text-yellow-300 transition cursor-pointer">Customer Service</a></li>
+        <li><a (click)="navigate('/retail-services','advisory')" class="hover:text-yellow-300 transition cursor-pointer">Farm Advisory</a></li>
+        <li><a (click)="navigate('/retail-services','technical')" class="hover:text-yellow-300 transition cursor-pointer">Technical Support</a></li>
+        <li><a (click)="navigate('/retail-services','training')" class="hover:text-yellow-300 transition cursor-pointer">Training</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="mt-14 pt-6 border-t border-green-600">
+    <p class="text-center text-sm text-green-200">
+      © {{ year }} Himalaya Agro. All rights reserved.
+    </p>
   </div>
 </footer>
