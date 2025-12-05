@@ -40,6 +40,14 @@ export const routes: Routes = [
         .then(m => m.LoginComponent)
   },
 
+  // ⭐ NEW ABOUT PAGE ROUTE ⭐
+  {
+    path: 'about',
+    loadComponent: () =>
+      import('./pages/about/about.component')
+        .then(m => m.AboutComponent)
+  },
+
   // --------------------------
   // ADMIN ROUTES
   // --------------------------
@@ -49,43 +57,48 @@ export const routes: Routes = [
     canActivate: [AdminGuard],
     children: [
 
-      { path: '',
+      {
+        path: '',
         loadComponent: () =>
           import('./pages/admin/dashboard/admin-dashboard.component')
             .then(m => m.AdminDashboardComponent),
-        // ensure re-run when navigating to same child route
         runGuardsAndResolvers: 'always'
       },
 
-      { path: 'products',
+      {
+        path: 'products',
         loadComponent: () =>
           import('./pages/admin/product-list/product-list.component')
             .then(m => m.ProductListComponent),
         runGuardsAndResolvers: 'always'
       },
 
-      { path: 'upload',
+      {
+        path: 'upload',
         loadComponent: () =>
           import('./pages/admin/product-uploader/product-uploader.component')
             .then(m => m.ProductUploaderComponent),
         runGuardsAndResolvers: 'always'
       },
 
-      { path: 'sliders',
+      {
+        path: 'sliders',
         loadComponent: () =>
           import('./pages/admin/slider-list/slider-list.component')
             .then(m => m.SliderListComponent),
         runGuardsAndResolvers: 'always'
       },
 
-      { path: 'slider-upload',
+      {
+        path: 'slider-upload',
         loadComponent: () =>
           import('./pages/admin/slider-uploader/slider-uploader.component')
             .then(m => m.SliderUploaderComponent),
         runGuardsAndResolvers: 'always'
       },
 
-      { path: 'logs',
+      {
+        path: 'logs',
         loadComponent: () =>
           import('./pages/admin/audit-logs/audit-logs.component')
             .then(m => m.AuditLogsComponent),

@@ -1,11 +1,9 @@
 <nav class="bg-white shadow-sm sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-20 items-center"> <!-- Increased height -->
+    <div class="flex justify-between h-20 items-center">
 
       <!-- Logo + Name -->
       <a routerLink="/" class="flex items-center gap-4">
-
-        <!-- Logos aligned with same height, object-contain -->
         <img
           src="Himalaya_logo.png"
           alt="Himalaya Logo"
@@ -18,7 +16,6 @@
           class="w-12 h-12 md:w-14 md:h-14 object-contain rounded hidden sm:block"
         />
 
-        <!-- Company Names -->
         <div class="leading-tight">
           <div class="font-bold text-base md:text-lg text-gray-800">
             Sahasya Farmer's Produce Pvt Ltd
@@ -40,8 +37,7 @@
         <!-- Category Dropdown -->
         <div class="relative group">
           <button class="text-gray-700 hover:text-green-600 flex items-center gap-1">
-            Categories
-            <span class="text-sm">▾</span>
+            Categories <span class="text-sm">▾</span>
           </button>
 
           <div
@@ -60,8 +56,12 @@
           </div>
         </div>
 
-        <a routerLink="/" class="text-gray-700 hover:text-green-600">Sell</a>
-        <a routerLink="/" class="text-gray-700 hover:text-green-600">About</a>
+        <!-- ✔ UPDATED: About + Services with fragments -->
+        <a routerLink="/about" fragment="about" class="text-gray-700 hover:text-green-600">About</a>
+
+        <a routerLink="/about" fragment="services" class="text-gray-700 hover:text-green-600">
+          Services
+        </a>
 
         <!-- Search -->
         <div class="relative">
@@ -91,7 +91,8 @@
         <div class="flex items-center gap-4">
 
           <a routerLink="/cart" class="relative">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 hover:text-green-600"
+            <svg xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-gray-700 hover:text-green-600"
               fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6a4 4 0 10-8 0v7" />
@@ -119,15 +120,15 @@
       <!-- Mobile Toggle Button -->
       <button class="md:hidden p-2 rounded-md border" (click)="toggleMobile()">
         @if (!mobileOpen) {
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 8h16M4 16h16" />
           </svg>
         }
         @if (mobileOpen) {
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -142,7 +143,9 @@
   <div class="md:hidden border-t bg-white">
     <div class="px-4 py-3 space-y-3">
 
-      <a routerLink="/" (click)="toggleMobile()" class="block text-gray-700">Home</a>
+      <a routerLink="/" (click)="toggleMobile()" class="block text-gray-700">
+        Home
+      </a>
 
       <div>
         <div class="font-medium text-gray-700">Categories</div>
@@ -158,8 +161,14 @@
         </div>
       </div>
 
-      <a routerLink="/" (click)="toggleMobile()" class="block text-gray-700">Sell</a>
-      <a routerLink="/" (click)="toggleMobile()" class="block text-gray-700">About</a>
+      <!-- ✔ About + Services -->
+      <a routerLink="/about" fragment="about" (click)="toggleMobile()" class="block text-gray-700">
+        About
+      </a>
+
+      <a routerLink="/about" fragment="services" (click)="toggleMobile()" class="block text-gray-700">
+        Services
+      </a>
 
       <input
         type="search"
@@ -174,8 +183,8 @@
       </a>
 
       <button class="w-full flex items-center gap-2 px-3 py-2 rounded-lg border" aria-label="Account">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-          viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M5.121 17.804A9 9 0 1118.878 6.196M12 14a4 4 0 110-8 4 4 0 010 8zm0 0c-4.418 0-8 2.015-8 4.5V21h16v-2.5c0-2.485-3.582-4.5-8-4.5z" />
         </svg>
