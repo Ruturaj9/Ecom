@@ -1,77 +1,94 @@
 <div id="top" class="scroll-anchor"></div>
+
 <!-- ================= PREMIUM SLIDER ================= -->
 <section class="w-full relative select-none">
-  <div id="top" class="max-w-7xl mx-auto px-4 py-6">
+  <div class="max-w-7xl mx-auto px-4 py-6">
 
-    <div
-      class="relative rounded-3xl overflow-hidden h-64 md:h-[430px] shadow-2xl"
-      (touchstart)="onTouchStart($event)"
-      (touchmove)="onTouchMove($event)"
-      (touchend)="onTouchEnd()"
-    >
-
-      <!-- Slides -->
-      @for (img of offerImages; track $index) {
-        <div
-          class="absolute inset-0 transition-opacity duration-700 ease-in-out animate-blurFade pointer-events-none"
-          [class.opacity-100]="currentSlide === $index"
-          [class.opacity-0]="currentSlide !== $index"
-        >
-
-          <img [src]="img" class="w-full h-full object-cover animate-kenburns" />
-
-          <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent animate-glowPulse"></div>
-
-          <!-- TEXT area clickable -->
-          <div class="absolute top-1/2 -translate-y-1/2 left-10 text-white max-w-xl animate-textUp pointer-events-auto">
-            <h2 class="text-4xl md:text-6xl font-extrabold drop-shadow-xl">
-              Fresh. Organic. Local.
-            </h2>
-            <p class="mt-3 text-lg md:text-xl font-light text-white/90">
-              Hand-picked produce delivered to your doorstep.
-            </p>
-            <button class="mt-5 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-full font-semibold shadow-xl">
-              Shop Now
-            </button>
-          </div>
-
-        </div>
-      }
-
-      <!-- Navigation Arrows -->
-      <button
-        class="absolute top-1/2 -translate-y-1/2 left-4 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg z-20 pointer-events-auto"
-        (click)="prev()"
-      >
-        ‹
-      </button>
-
-      <button
-        class="absolute top-1/2 -translate-y-1/2 right-4 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg z-20 pointer-events-auto"
-        (click)="next()"
-      >
-        ›
-      </button>
-
-      <!-- Indicators -->
-      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20 pointer-events-auto">
-        @for (dot of offerImages; track $index) {
-          <div
-            (click)="goTo($index)"
-            class="w-4 h-4 rounded-full cursor-pointer transition-all duration-300 border border-white/70"
-            [class.bg-white]="currentSlide === $index"
-            [class.bg-white/30]="currentSlide !== $index"
-          ></div>
-        }
+    @if (sliderLoading()) {
+      <div class="h-64 md:h-[430px] flex items-center justify-center">
+        <div class="animate-pulse text-gray-500">Loading sliders...</div>
       </div>
+    }
 
-    </div>
+    @if (sliderError()) {
+      <div class="text-red-600">{{ sliderError() }}</div>
+    }
+
+    @if (sliders().length > 0) {
+      <div
+        class="relative rounded-3xl overflow-hidden h-64 md:h-[430px] shadow-2xl"
+        (touchstart)="onTouchStart($event)"
+        (touchmove)="onTouchMove($event)"
+        (touchend)="onTouchEnd()"
+      >
+
+        @for (slide of sliders(); track slide._id) {
+          <div
+            class="absolute inset-0 transition-opacity duration-700 ease-in-out animate-blurFade pointer-events-none"
+            [class.opacity-100]="currentSlide === $index"
+            [class.opacity-0]="currentSlide !== $index"
+          >
+            <img [src]="slide.imageUrl" class="w-full h-full object-cover animate-kenburns" />
+
+            <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+
+            <div class="absolute top-1/2 -translate-y-1/2 left-10 text-white max-w-xl pointer-events-auto">
+              <h2 class="text-4xl md:text-6xl font-extrabold drop-shadow-xl">
+                {{ slide.title }}
+              </h2>
+
+              <p class="mt-3 text-lg md:text-xl text-white/90">
+                {{ slide.subtitle }}
+              </p>
+
+              @if (slide.buttonText) {
+                <button
+                  class="mt-5 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-full font-semibold shadow-xl"
+                  (click)="go(slide)"
+                >
+                  {{ slide.buttonText }}
+                </button>
+              }
+            </div>
+
+          </div>
+        }
+
+        <!-- Navigation Arrows -->
+        <button
+          class="absolute top-1/2 -translate-y-1/2 left-4 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg z-20"
+          (click)="prev()"
+        >
+          ‹
+        </button>
+
+        <button
+          class="absolute top-1/2 -translate-y-1/2 right-4 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg z-20"
+          (click)="next()"
+        >
+          ›
+        </button>
+
+        <!-- Indicators -->
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+          @for (dot of sliders(); track dot._id) {
+            <div
+              (click)="goTo($index)"
+              class="w-4 h-4 rounded-full cursor-pointer transition-all border border-white/70"
+              [class.bg-white]="currentSlide === $index"
+              [class.bg-white/30]="currentSlide !== $index"
+            ></div>
+          }
+        </div>
+
+      </div>
+    }
 
   </div>
 </section>
 
+<!-- Rest of HERO + CATEGORIES + FEATURED stays same -->
 
-<!-- ================= HERO SECTION ================= -->
 <section class="bg-green-50">
   <div class="max-w-7xl mx-auto px-4 py-12 lg:py-20">
     <div class="grid md:grid-cols-2 gap-8 items-center">
@@ -88,12 +105,8 @@
         </p>
 
         <div class="mt-6 flex gap-3">
-          <input type="text" class="flex-1 px-4 py-3 rounded-lg border focus:outline-none"
-            placeholder="Search for products or locations" />
-
-          <button class="px-6 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700">
-            Search
-          </button>
+          <input type="text" class="flex-1 px-4 py-3 rounded-lg border" placeholder="Search for products or locations" />
+          <button class="px-6 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700">Search</button>
         </div>
       </div>
 
@@ -105,34 +118,26 @@
   </div>
 </section>
 
-
-<!-- ================= CATEGORIES SECTION ================= -->
+<!-- Categories -->
 <section class="py-10">
   <div class="max-w-7xl mx-auto px-4">
-
     <h2 class="text-2xl font-bold">Shop by Category</h2>
 
     <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-
       @for (c of categories; track $index) {
         <div
           (click)="goToCategory(c)"
-          class="bg-white p-4 rounded-xl flex flex-col items-center shadow hover:shadow-md transition cursor-pointer pointer-events-auto"
-          role="button"
-          tabindex="0"
-          (keydown.enter)="goToCategory(c)"
+          class="bg-white p-4 rounded-xl flex flex-col items-center shadow hover:shadow-md transition cursor-pointer"
         >
           <div class="text-3xl">{{ c.icon }}</div>
           <div class="mt-2 font-medium">{{ c.name }}</div>
         </div>
       }
-
     </div>
   </div>
 </section>
 
-
-<!-- ================= FEATURED PRODUCTS ================= -->
+<!-- Featured Products -->
 <section class="py-10 bg-gray-50">
   <div class="max-w-7xl mx-auto px-4">
 
@@ -141,12 +146,18 @@
       <a class="text-green-600 cursor-pointer hover:underline">See all</a>
     </div>
 
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+    @if (productLoading()) {
+      <div class="mt-6 text-gray-500">Loading products...</div>
+    }
 
-      @for (p of featured; track p.id ?? $index) {
+    @if (productError()) {
+      <div class="mt-6 text-red-600">{{ productError() }}</div>
+    }
+
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      @for (p of featured(); track p._id ?? $index) {
         <app-product-card [product]="p"></app-product-card>
       }
-
     </div>
 
   </div>

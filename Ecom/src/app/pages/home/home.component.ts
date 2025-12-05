@@ -1,7 +1,8 @@
-import { Component, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-home',
@@ -11,25 +12,67 @@ import { ProductCardComponent } from '../../components/product-card/product-card
 })
 export class HomeComponent implements OnDestroy {
 
+  router = inject(Router);
+  productSvc = inject(ProductService);
+  cdr = inject(ChangeDetectorRef);
+
+  // -----------------------------
+  // SIGNAL STATE
+  // -----------------------------
+  sliders = signal<any[]>([]);
+  sliderLoading = signal(true);
+  sliderError = signal('');
+
+  featured = signal<any[]>([]);
+  productLoading = signal(true);
+  productError = signal('');
+
+  // -----------------------------
+  // SLIDER LOGIC
+  // -----------------------------
   currentSlide = 0;
-
-  offerImages = [
-    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1511689988353-3a2f5be94cd6?auto=format&fit=crop&w=1600&q=80",
-    "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1600&q=80"
-  ];
-
   private timer: any;
 
-  constructor(private cdr: ChangeDetectorRef, private router: Router) {
-    this.startAutoSlide();
+  constructor() {
+    this.loadSliders();
+    this.loadProducts();
   }
 
+  // Load Public Sliders
+  loadSliders() {
+    this.productSvc.getSlidersPublic().subscribe({
+      next: (res: any) => {
+        this.sliders.set(res.sliders || []);
+        this.sliderLoading.set(false);
+        this.startAutoSlide();
+      },
+      error: () => {
+        this.sliderError.set('Failed to load sliders');
+        this.sliderLoading.set(false);
+      }
+    });
+  }
+
+  // Load Public Products
+  loadProducts() {
+    this.productSvc.getPublicProducts().subscribe({
+      next: (res: any) => {
+        this.featured.set(res.products || []);
+        this.productLoading.set(false);
+      },
+      error: () => {
+        this.productError.set('Failed to load products');
+        this.productLoading.set(false);
+      }
+    });
+  }
+
+  // -----------------------------
+  // SLIDER AUTOPLAY
+  // -----------------------------
   startAutoSlide() {
     this.stopAutoSlide();
-    this.timer = setInterval(() => {
-      this.next();
-    }, 5000);
+    this.timer = setInterval(() => this.next(), 5000);
   }
 
   stopAutoSlide() {
@@ -37,14 +80,16 @@ export class HomeComponent implements OnDestroy {
   }
 
   next() {
-    this.currentSlide = (this.currentSlide + 1) % this.offerImages.length;
+    const list = this.sliders();
+    if (!list.length) return;
+    this.currentSlide = (this.currentSlide + 1) % list.length;
     this.cdr.markForCheck();
   }
 
   prev() {
-    this.currentSlide =
-      (this.currentSlide - 1 + this.offerImages.length) %
-      this.offerImages.length;
+    const list = this.sliders();
+    if (!list.length) return;
+    this.currentSlide = (this.currentSlide - 1 + list.length) % list.length;
     this.cdr.markForCheck();
   }
 
@@ -54,22 +99,9 @@ export class HomeComponent implements OnDestroy {
     this.cdr.markForCheck();
   }
 
-  /* --- CATEGORY NAVIGATION --- */
-  categories = [
-    { id: 1, name: 'Vegetables', icon: '🥕' },
-    { id: 2, name: 'Fruits', icon: '🍎' },
-    { id: 3, name: 'Grains', icon: '🌾' },
-    { id: 4, name: 'Dairy', icon: '🧀' },
-    { id: 5, name: 'Pulses', icon: '🫘' },
-    { id: 6, name: 'Seeds', icon: '🌱' }
-  ];
-
-  goToCategory(c: { id: number; name: string; icon: string }) {
-    // navigate to /products with category query param
-    this.router.navigate(['/products'], { queryParams: { category: c.name } });
-  }
-
-  /* SWIPE SUPPORT */
+  // -----------------------------
+  // SWIPE CONTROLS
+  // -----------------------------
   touchStartX = 0;
   touchEndX = 0;
 
@@ -89,15 +121,34 @@ export class HomeComponent implements OnDestroy {
     this.startAutoSlide();
   }
 
+  // -----------------------------
+  // CATEGORY
+  // -----------------------------
+  categories = [
+    { id: 1, name: 'Vegetables', icon: '🥕' },
+    { id: 2, name: 'Fruits', icon: '🍎' },
+    { id: 3, name: 'Grains', icon: '🌾' },
+    { id: 4, name: 'Dairy', icon: '🧀' },
+    { id: 5, name: 'Pulses', icon: '🫘' },
+    { id: 6, name: 'Seeds', icon: '🌱' }
+  ];
+
+  goToCategory(c: any) {
+    this.router.navigate(['/products'], { queryParams: { category: c.name } });
+  }
+
+  // -----------------------------
+  // FIX for missing method (click)="go(slide)"
+  // -----------------------------
+  go(slide: any) {
+    if (!slide?.buttonLink) return;
+    this.router.navigate([slide.buttonLink]);
+  }
+
+  // -----------------------------
+  // DESTROY
+  // -----------------------------
   ngOnDestroy() {
     this.stopAutoSlide();
   }
-
-  /* FEATURED (kept for page) */
-  featured = [
-    { id: 1, title: 'Potatoes', price: 22, location: 'Pune', image: 'https://picsum.photos/seed/p1/600/400' },
-    { id: 2, title: 'Tomatoes', price: 40, location: 'Nashik', image: 'https://picsum.photos/seed/p2/600/400' },
-    { id: 3, title: 'Onions', price: 35, location: 'Solapur', image: 'https://picsum.photos/seed/p3/600/400' },
-    { id: 4, title: 'Banana', price: 55, location: 'Satara', image: 'https://picsum.photos/seed/p4/600/400' }
-  ];
 }

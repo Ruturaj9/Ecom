@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -12,12 +12,15 @@ export class ProductCardComponent {
 
   @Input() product: any = null;
 
-  constructor(private router: Router) {}
+  router = inject(Router);
 
   goToDetail(event?: MouseEvent) {
     if (event) event.stopPropagation();
-    if (this.product?.id != null) {
-      this.router.navigate(['/products', this.product.id]);
+    if (!this.product) return;
+
+    const id = this.product._id || this.product.id;
+    if (id) {
+      this.router.navigate(['/products', id]);
     }
   }
 }
