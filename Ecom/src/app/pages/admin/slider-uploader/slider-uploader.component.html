@@ -1,109 +1,121 @@
 <div class="max-w-5xl mx-auto px-6 py-8 space-y-8">
 
-  <!-- Page Title -->
+  <!-- HEADER -->
   <div>
     <h1 class="text-3xl font-bold text-gray-800">Slider Manager</h1>
-    <p class="text-gray-500 mt-1">Upload homepage slider images and configure details.</p>
+    <p class="text-gray-500 mt-1">Upload homepage slider images & configure details.</p>
   </div>
 
-  <!-- Upload Card -->
+  <!-- UPLOAD SECTION -->
   <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
     <h2 class="text-xl font-semibold mb-4">Upload Images</h2>
 
     <div class="flex flex-wrap items-center gap-4">
-
-      <!-- File Input -->
       <label class="px-4 py-2 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition">
         <input type="file" multiple accept="image/*" class="hidden" (change)="onFilesSelected($event)" />
         Select Images
       </label>
 
-      <!-- Paste URL -->
       <div class="flex items-center border rounded-lg overflow-hidden">
-        <input #urlInput placeholder="Paste image URL" class="px-3 py-2 outline-none w-56" />
-        <button type="button"
+        <input #urlInput placeholder="Paste image URL or {desktop,mobile}" class="px-3 py-2 outline-none w-56" />
+        <button
           class="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition"
           (click)="addExternalUrl(urlInput.value); urlInput.value=''">
           Add
         </button>
       </div>
 
+      <button
+        class="px-5 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+        [disabled]="uploading"
+        (click)="uploadToServer()">
+        Upload to Server
+      </button>
     </div>
 
-    <p class="text-sm text-red-600 mt-2">{{ message() }}</p>
+    @if (message) {
+      <p class="text-sm text-red-600 mt-2">{{ message }}</p>
+    }
   </div>
 
-  <!-- Preview List -->
-  <div class="space-y-6" *ngIf="previews().length > 0">
-    <h2 class="text-xl font-semibold">Slides ({{ previews().length }})</h2>
+  <!-- PREVIEWS -->
+  @if (previews.length > 0) {
 
-    <div class="space-y-5" cdkDropList (cdkDropListDropped)="drop($event)">
+    <div class="space-y-6">
+      <h2 class="text-xl font-semibold">Slides ({{ previews.length }})</h2>
 
-      <!-- Slide Preview Card -->
-      <div class="bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition"
-        *ngFor="let p of previews(); let i = index" cdkDrag>
+      <div class="space-y-5" cdkDropList (cdkDropListDropped)="drop($event)">
 
-        <div class="flex gap-5">
+        @for (p of previews; track $index; let i = $index) {
 
-          <!-- Image -->
-          <img [src]="p.url || p.tempPreview" class="w-40 h-28 rounded-lg object-cover border" />
+          <div class="bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition" cdkDrag>
+            <div class="flex gap-5">
 
-          <!-- Fields -->
-          <div class="flex-1 space-y-3">
+              <!-- IMAGE PREVIEW -->
+              <img [src]="getImage(p)" class="w-40 h-28 object-cover rounded-lg border" />
 
-            <div>
-              <label class="text-xs text-gray-600">Title</label>
-              <input [(ngModel)]="p.title" class="w-full px-3 py-2 border rounded-lg" />
-            </div>
+              <div class="flex-1 space-y-3">
 
-            <div>
-              <label class="text-xs text-gray-600">Subtitle</label>
-              <input [(ngModel)]="p.subtitle" class="w-full px-3 py-2 border rounded-lg" />
-            </div>
+                <div>
+                  <label class="text-xs text-gray-600">Title</label>
+                  <input [(ngModel)]="p.title" class="w-full px-3 py-2 border rounded-lg" />
+                </div>
 
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="text-xs text-gray-600">Button Text</label>
-                <input [(ngModel)]="p.buttonText" class="w-full px-3 py-2 border rounded-lg" />
+                <div>
+                  <label class="text-xs text-gray-600">Subtitle</label>
+                  <input [(ngModel)]="p.subtitle" class="w-full px-3 py-2 border rounded-lg" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs text-gray-600">Button Text</label>
+                    <input [(ngModel)]="p.buttonText" class="w-full px-3 py-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label class="text-xs text-gray-600">Button Link</label>
+                    <input [(ngModel)]="p.buttonLink" class="w-full px-3 py-2 border rounded-lg" />
+                  </div>
+                </div>
+
+                <!-- ACTIVE toggle -->
+                <div class="flex items-center gap-2 mt-1">
+                  <input type="checkbox" class="w-4 h-4" [(ngModel)]="p.active" />
+                  <label class="text-sm text-gray-700">Active</label>
+                </div>
+
+                <div class="flex items-center justify-between text-sm mt-2">
+                  <span class="text-gray-500">Order: {{ i + 1 }}</span>
+
+                  <div class="flex items-center gap-4">
+                    @if (p.uploading) {
+                      <span class="text-orange-600">Uploading…</span>
+                    }
+                    @if (p.uploaded) {
+                      <span class="text-green-700 font-semibold">Uploaded ✓</span>
+                    }
+                    <button
+                      class="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+                      (click)="removePreview(i)">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
               </div>
-
-              <div>
-                <label class="text-xs text-gray-600">Button Link</label>
-                <input [(ngModel)]="p.buttonLink" class="w-full px-3 py-2 border rounded-lg" />
-              </div>
             </div>
-
-            <!-- Footer -->
-            <div class="flex items-center justify-between text-sm mt-2">
-
-              <span class="text-gray-500">Order: {{ i + 1 }}</span>
-
-              <div class="flex items-center gap-4">
-                <span *ngIf="p.uploading" class="text-orange-600">Uploading…</span>
-                <span *ngIf="p.uploaded" class="text-green-700 font-semibold">Uploaded ✓</span>
-
-                <button type="button"
-                  class="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
-                  (click)="removePreview(i)">
-                  Remove
-                </button>
-              </div>
-
-            </div>
-
           </div>
-        </div>
+
+        }
+
       </div>
 
+      <button
+        class="w-full px-5 py-3 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+        [disabled]="disableSaveButton()"
+        (click)="saveSlider()">
+        Save Slider
+      </button>
+
     </div>
-  </div>
-
-  <!-- Save Slider Button -->
-  <div *ngIf="previews().length > 0">
-    <button class="w-full px-5 py-3 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition"
-      (click)="saveSlider()">
-      Save Slider
-    </button>
-  </div>
-
+  }
 </div>

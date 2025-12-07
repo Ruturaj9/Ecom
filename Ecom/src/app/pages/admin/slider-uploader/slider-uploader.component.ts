@@ -1,183 +1,187 @@
-import { Component, ChangeDetectorRef, signal } from '@angular/core';
+// src/app/pages/admin/slider-uploader/slider-uploader.component.ts
+import { Component, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ProductService } from '../../../services/product.service';
 import { finalize } from 'rxjs/operators';
 
+type UrlVariant = string | { desktop: string; mobile: string };
+
 interface SlidePreview {
   file?: File;
-  url: string;          // Cloudinary URL ONLY (no Base64)
-  tempPreview?: string; // Local Blob URL for preview
+  url: UrlVariant | '';
   title?: string;
   subtitle?: string;
   buttonText?: string;
   buttonLink?: string;
   uploading?: boolean;
   uploaded?: boolean;
+  tempPreview?: string;
+  active?: boolean;
 }
 
 @Component({
   selector: 'app-slider-uploader',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, DragDropModule],
   templateUrl: './slider-uploader.component.html',
 })
 export class SliderUploaderComponent {
 
-  previews = signal<SlidePreview[]>([]);
-  uploading = signal(false);
-  message = signal('');
+  previews: SlidePreview[] = [];
+  uploading = false;
+  message = '';
+
+  /** notify home page / preview page */
+  @Output() slidersUpdated = new EventEmitter<void>();
 
   constructor(
     private productSvc: ProductService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  // ---------------------------------------
-  // SELECT FILES → AUTO-UPLOAD
-  // ---------------------------------------
-  onFilesSelected(ev: Event): void {
-    const input = ev.target as HTMLInputElement | null;
-    if (!input?.files) return;
-
-    const files = Array.from(input.files);
-    input.value = '';
-
-    this.autoUpload(files);
+  /** pick correct image for preview */
+  getImage(p: SlidePreview): string {
+    if (!p.url) return p.tempPreview || '';
+    if (typeof p.url === 'string') return p.url;
+    return p.url.desktop || p.url.mobile || '';
   }
 
-  // ---------------------------------------
-  // AUTO UPLOAD — removes Base64 completely
-  // ---------------------------------------
-  autoUpload(files: File[]) {
-    if (files.length === 0) return;
+  /** Disable Save button until every image is uploaded */
+  disableSaveButton(): boolean {
+    return (
+      this.uploading ||
+      this.previews.length === 0 ||
+      this.previews.some(p => !p.uploaded)
+    );
+  }
 
-    this.uploading.set(true);
+  /** file input selection */
+  onFilesSelected(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    if (!input.files) return;
+    const files = Array.from(input.files);
+    input.value = '';
+    this.addFiles(files);
+  }
 
-    // Create blob preview
-    files.forEach(file => {
-      const blobURL = URL.createObjectURL(file);
+  /** create preview objects */
+  addFiles(files: File[]) {
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
 
-      this.previews.update(list => [
-        ...list,
-        {
-          file,
-          tempPreview: blobURL,
-          url: '',
-          uploading: true,
-          uploaded: false,
-        }
-      ]);
-    });
+      this.previews.push({
+        file,
+        url: '',
+        tempPreview: URL.createObjectURL(file),
+        uploading: false,
+        uploaded: false,
+        active: true
+      });
+    }
+    this.cdr.markForCheck();
+  }
 
-    this.productSvc.uploadSliderImages(files)
-      .pipe(finalize(() => this.uploading.set(false)))
+  /** upload images to Cloudinary */
+  uploadToServer() {
+    const files = this.previews.filter(p => p.file).map(p => p.file!) as File[];
+    if (files.length === 0) {
+      this.message = 'No new images to upload.';
+      return;
+    }
+
+    this.uploading = true;
+    this.previews.forEach(p => { if (p.file) p.uploading = true; });
+
+    this.productSvc
+      .uploadSliderImages(files)
+      .pipe(finalize(() => { this.uploading = false; this.cdr.detectChanges(); }))
       .subscribe({
-        next: (res: { urls: string[] }) => {
+        next: (res: { urls: { desktop: string; mobile: string }[] }) => {
+
           let i = 0;
-          this.previews.update(list =>
-            list.map(item => {
-              if (item.file && !item.uploaded) {
-                const cloudUrl = res.urls[i++];
-                return {
-                  ...item,
-                  url: cloudUrl,
-                  file: undefined,
-                  tempPreview: undefined,
-                  uploading: false,
-                  uploaded: true
-                };
-              }
-              return item;
-            })
-          );
+          this.previews = this.previews.map(p => {
+            if (p.file) {
+              const r = res.urls[i++];
+              return {
+                ...p,
+                url: { desktop: r.desktop, mobile: r.mobile },
+                uploaded: true,
+                uploading: false,
+                file: undefined,
+                tempPreview: undefined
+              };
+            }
+            return p;
+          });
+
+          this.message = 'Upload complete.';
+          this.cdr.markForCheck();
         },
         error: () => {
-          this.message.set('Upload failed.');
-          this.previews.update(list =>
-            list.filter(p => p.uploaded)
-          );
+          this.message = 'Upload failed.';
+          this.previews.forEach(p => p.uploading = false);
+          this.cdr.markForCheck();
         }
       });
   }
 
-  // ---------------------------------------
-  // ADD EXTERNAL URL (always uploaded)
-  // ---------------------------------------
-  addExternalUrl(url: string) {
-    if (!url.trim()) return;
+  /** external url add */
+  addExternalUrl(raw: string) {
+    if (!raw.trim()) return;
+    let parsed: UrlVariant = raw.trim();
 
-    this.previews.update(list => [
-      ...list,
-      {
-        url: url.trim(),
-        uploaded: true
-      }
-    ]);
+    try {
+      const obj = JSON.parse(raw);
+      if (obj.desktop || obj.mobile) parsed = obj;
+    } catch {}
+
+    this.previews.push({
+      url: parsed,
+      uploaded: true,
+      active: true
+    });
+
+    this.cdr.markForCheck();
   }
 
-  // ---------------------------------------
-  // REMOVE SLIDE
-  // ---------------------------------------
+  /** remove */
   removePreview(i: number) {
-    this.previews.update(list => list.filter((_, idx) => idx !== i));
+    const p = this.previews[i];
+    if (p.tempPreview) URL.revokeObjectURL(p.tempPreview);
+    this.previews.splice(i, 1);
+    this.cdr.markForCheck();
   }
 
-  // ---------------------------------------
-  // REORDER (Drag Drop)
-  // ---------------------------------------
-  drop(event: CdkDragDrop<SlidePreview[]>) {
-    const list = [...this.previews()];
-    moveItemInArray(list, event.previousIndex, event.currentIndex);
-    this.previews.set(list);
+  /** reorder */
+  drop(ev: CdkDragDrop<SlidePreview[]>) {
+    moveItemInArray(this.previews, ev.previousIndex, ev.currentIndex);
+    this.cdr.markForCheck();
   }
 
-  // ---------------------------------------
-  // SAVE SLIDER — auto-upload pending files
-  // ---------------------------------------
+  /** save everything */
   saveSlider() {
-    const list = this.previews();
+    if (this.disableSaveButton()) return;
 
-    if (list.length === 0) {
-      this.message.set('No slides to save.');
-      return;
-    }
-
-    // Detect unuploaded or Base64 images
-    const needUpload = list.filter(p =>
-      !p.uploaded ||
-      p.url.startsWith('data:image') ||
-      (!p.url && p.tempPreview)
-    );
-
-    if (needUpload.length > 0) {
-      const files = needUpload
-        .map(p => p.file)
-        .filter(f => !!f) as File[];
-
-      if (files.length > 0) {
-        this.message.set('Uploading pending images...');
-        this.autoUpload(files);
-        return;
-      }
-    }
-
-    // Build payload
-    const payload = list.map((p, index) => ({
-      imageUrl: p.url, // Cloudinary URL ONLY
+    const payload = this.previews.map((p, index) => ({
+      imageUrl: p.url,
       title: p.title || '',
       subtitle: p.subtitle || '',
       buttonText: p.buttonText || '',
       buttonLink: p.buttonLink || '',
       order: index + 1,
-      active: true
+      active: p.active ?? true
     }));
 
     this.productSvc.saveSlider(payload).subscribe({
-      next: () => this.message.set('Slider saved successfully!'),
-      error: err =>
-        this.message.set(err?.error?.message || 'Failed to save slider.')
+      next: () => {
+        this.message = 'Slider saved successfully!';
+        this.previews = [];
+        this.slidersUpdated.emit();   // notify home to refresh
+        this.cdr.markForCheck();
+      },
+      error: () => this.message = 'Failed to save slider.'
     });
   }
 }

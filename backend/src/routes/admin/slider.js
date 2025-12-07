@@ -11,7 +11,9 @@ const cloudinary = require('../../config/cloudinary');
 const router = express.Router();
 
 /**
- * Upload slider images (Auto Resize: 1600×600)
+ * Upload slider images (memoryStorage → Cloudinary upload)
+ * Returns:
+ *  { urls: [ { desktop: <url>, mobile: <url> }, ... ] }
  */
 router.post(
   '/upload',
@@ -23,21 +25,82 @@ router.post(
         return res.status(400).json({ error: 'No images uploaded' });
       }
 
-      // Transform images before saving
-      const uploadPromises = req.files.map((f) =>
-        cloudinary.uploader.upload(f.path, {
+      const uploadResults = [];
+
+      for (const file of req.files) {
+        if (!file.buffer) {
+          console.warn("Skipping file without buffer", file);
+          continue;
+        }
+
+        // Upload DESKTOP VERSION
+        const desktopPromise = cloudinary.uploader.upload_stream({
           folder: 'ecommerce_sliders',
-          width: 1600,       // perfect slider width
-          height: 600,       // perfect slider height
-          crop: 'fill',      // fills container
-          gravity: 'auto',   // smart focus cropping
+          width: 1600,
+          height: 600,
+          crop: 'fill',
+          gravity: 'auto',
           quality: 'auto',
           fetch_format: 'auto'
-        })
-      );
+        });
 
-      const results = await Promise.all(uploadPromises);
-      const urls = results.map((r) => r.secure_url);
+        // Upload MOBILE VERSION
+        const mobilePromise = cloudinary.uploader.upload_stream({
+          folder: 'ecommerce_sliders',
+          width: 800,
+          height: 350,
+          crop: 'fill',
+          gravity: 'auto',
+          quality: 'auto',
+          fetch_format: 'auto'
+        });
+
+        // Convert upload_stream to promise
+        const streamUpload = (stream, buffer) =>
+          new Promise((resolve, reject) => {
+            const cldStream = stream;
+            cldStream.on('finish', resolve);
+            cldStream.on('error', reject);
+            cldStream.end(buffer);
+          });
+
+        const desktopRes = await new Promise((resolve, reject) => {
+          const upload = cloudinary.uploader.upload_stream(
+            {
+              folder: 'ecommerce_sliders',
+              width: 1600,
+              height: 600,
+              crop: 'fill',
+              gravity: 'auto',
+              quality: 'auto',
+              fetch_format: 'auto'
+            },
+            (err, result) => (err ? reject(err) : resolve(result))
+          );
+          upload.end(file.buffer);
+        });
+
+        const mobileRes = await new Promise((resolve, reject) => {
+          const upload = cloudinary.uploader.upload_stream(
+            {
+              folder: 'ecommerce_sliders',
+              width: 800,
+              height: 350,
+              crop: 'fill',
+              gravity: 'auto',
+              quality: 'auto',
+              fetch_format: 'auto'
+            },
+            (err, result) => (err ? reject(err) : resolve(result))
+          );
+          upload.end(file.buffer);
+        });
+
+        uploadResults.push({
+          desktop: desktopRes.secure_url,
+          mobile: mobileRes.secure_url
+        });
+      }
 
       await auditLogger({
         req,
@@ -47,11 +110,13 @@ router.post(
         resourceType: 'SliderImage',
         resourceId: null,
         before: null,
-        after: { urls },
+        after: { urls: uploadResults }
       });
 
-      res.json({ urls });
+      res.json({ urls: uploadResults });
+
     } catch (err) {
+      console.error("UPLOAD ERROR:", err);
       next(err);
     }
   }
@@ -65,13 +130,7 @@ router.post(
   requireAdmin(['admin']),
   [
     body('sliders').isArray({ min: 1 }),
-    body('sliders.*.imageUrl').isString().notEmpty(),
-    body('sliders.*.title').optional().isString(),
-    body('sliders.*.subtitle').optional().isString(),
-    body('sliders.*.buttonText').optional().isString(),
-    body('sliders.*.buttonLink').optional().isString(),
-    body('sliders.*.order').optional().isInt(),
-    body('sliders.*.active').optional().isBoolean(),
+    body('sliders.*.imageUrl').notEmpty(),
   ],
   validateRequest,
   async (req, res, next) => {
@@ -80,10 +139,9 @@ router.post(
       const created = [];
 
       for (const s of sliders) {
-        const order =
-          s.order || (await Slider.countDocuments()) + 1;
+        const order = s.order || (await Slider.countDocuments()) + 1;
 
-        const doc = {
+        const saved = await Slider.create({
           title: s.title || '',
           subtitle: s.subtitle || '',
           buttonText: s.buttonText || '',
@@ -91,26 +149,14 @@ router.post(
           imageUrl: s.imageUrl,
           order,
           active: s.active ?? true,
-          createdBy: req.admin.id,
-        };
-
-        const saved = await Slider.create(doc);
-
-        await auditLogger({
-          req,
-          actorId: req.admin.id,
-          actorEmail: req.admin.email,
-          action: 'slider.create',
-          resourceType: 'Slider',
-          resourceId: saved._id,
-          before: null,
-          after: saved,
+          createdBy: req.admin.id
         });
 
         created.push(saved);
       }
 
       res.status(201).json({ sliders: created });
+
     } catch (err) {
       next(err);
     }
@@ -118,7 +164,7 @@ router.post(
 );
 
 /**
- * List sliders (admin)
+ * Admin list sliders
  */
 router.get('/', requireAdmin(['admin']), async (req, res) => {
   const list = await Slider.find().sort({ order: 1 }).lean();
@@ -131,38 +177,15 @@ router.get('/', requireAdmin(['admin']), async (req, res) => {
 router.put(
   '/:id',
   requireAdmin(['admin']),
-  [
-    param('id').isMongoId(),
-    body('title').optional().isString(),
-    body('subtitle').optional().isString(),
-    body('buttonText').optional().isString(),
-    body('buttonLink').optional().isString(),
-    body('imageUrl').optional().isURL(),
-    body('order').optional().isInt(),
-    body('active').optional().isBoolean(),
-  ],
+  [param('id').isMongoId()],
   validateRequest,
   async (req, res, next) => {
     try {
-      const before = await Slider.findById(req.params.id).lean();
-      if (!before) return res.status(404).json({ error: 'Not found' });
-
       const updated = await Slider.findByIdAndUpdate(
         req.params.id,
         { $set: req.body },
         { new: true }
       );
-
-      await auditLogger({
-        req,
-        actorId: req.admin.id,
-        actorEmail: req.admin.email,
-        action: 'slider.update',
-        resourceType: 'Slider',
-        resourceId: updated._id,
-        before,
-        after: updated,
-      });
 
       res.json({ slider: updated });
     } catch (err) {
@@ -181,22 +204,7 @@ router.delete(
   validateRequest,
   async (req, res, next) => {
     try {
-      const before = await Slider.findById(req.params.id).lean();
-      if (!before) return res.status(404).json({ error: 'Not found' });
-
       await Slider.findByIdAndDelete(req.params.id);
-
-      await auditLogger({
-        req,
-        actorId: req.admin.id,
-        actorEmail: req.admin.email,
-        action: 'slider.delete',
-        resourceType: 'Slider',
-        resourceId: req.params.id,
-        before,
-        after: null,
-      });
-
       res.json({ message: 'Deleted' });
     } catch (err) {
       next(err);

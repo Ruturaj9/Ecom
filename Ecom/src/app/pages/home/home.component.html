@@ -4,19 +4,16 @@
 <section class="relative w-full select-none">
   <div class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- LOADING -->
     @if (sliderLoading()) {
       <div class="h-64 md:h-[430px] flex items-center justify-center">
         <div class="animate-pulse text-gray-500">Loading sliders...</div>
       </div>
     }
 
-    <!-- ERROR -->
     @if (sliderError()) {
       <div class="text-red-600">{{ sliderError() }}</div>
     }
 
-    <!-- SLIDER -->
     @if (sliders().length > 0) {
       <div
         class="relative rounded-3xl overflow-hidden h-64 md:h-[430px] shadow-xl group"
@@ -25,7 +22,6 @@
         (touchend)="onTouchEnd()"
       >
 
-        <!-- SLIDES -->
         @for (slide of sliders(); track slide._id; let i = $index) {
           <div
             class="absolute inset-0 transition-opacity duration-700 ease-in-out"
@@ -33,16 +29,15 @@
             [class.opacity-0]="currentSlide !== i"
           >
 
-            <!-- PERFECT FIT BACKGROUND IMAGE -->
+            <!-- FIXED: PERFECT BACKGROUND IMAGE -->
             <div
               class="absolute inset-0 bg-center bg-cover"
-              [style.background-image]="'url(' + slide.imageUrl + ')'"
+              [style.background-image]="'url(' + getImage(slide) + ')'"
             ></div>
 
-            <!-- DARK GRADIENT OVERLAY -->
+            <!-- DARK GRADIENT -->
             <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
 
-            <!-- TEXT AREA -->
             <div class="absolute inset-y-0 left-10 flex flex-col justify-center max-w-xl text-white">
 
               <h2 class="text-3xl md:text-5xl font-extrabold drop-shadow-xl animate-fade-slide">
@@ -69,7 +64,7 @@
           </div>
         }
 
-        <!-- LEFT ARROW -->
+        <!-- NAV BUTTONS -->
         <button
           class="absolute top-1/2 -translate-y-1/2 left-4 bg-white/90 hover:bg-white shadow-lg
                  p-3 rounded-full z-20 transition opacity-0 group-hover:opacity-100"
@@ -78,7 +73,6 @@
           ‹
         </button>
 
-        <!-- RIGHT ARROW -->
         <button
           class="absolute top-1/2 -translate-y-1/2 right-4 bg-white/90 hover:bg-white shadow-lg
                  p-3 rounded-full z-20 transition opacity-0 group-hover:opacity-100"
@@ -87,25 +81,21 @@
           ›
         </button>
 
-        <!-- DOT INDICATORS -->
+        <!-- DOTS -->
         <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-3 z-20">
           @for (s of sliders(); track s._id; let i = $index) {
             <div
               (click)="goTo(i)"
-              class="w-3 h-3 rounded-full border border-white/70 cursor-pointer transition
-                     duration-300"
+              class="w-3 h-3 rounded-full border border-white/70 cursor-pointer transition duration-300"
               [class.bg-white]="currentSlide === i"
               [class.bg-white/40]="currentSlide !== i"
             ></div>
           }
         </div>
-
       </div>
     }
-
   </div>
 </section>
-
 
 <!-- ================= HERO SECTION ================= -->
 <section class="bg-green-50">

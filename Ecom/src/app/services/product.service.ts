@@ -1,18 +1,19 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
 
-  private http = inject(HttpClient);
-
   private baseAdmin = 'http://localhost:4000/admin';
   private basePublic = 'http://localhost:4000';
 
-  // -----------------------------------------------------
+  constructor(private http: HttpClient) {}
+
+  // ===========================
   // PRODUCT CRUD (ADMIN)
-  // -----------------------------------------------------
+  // ===========================
+
   createProduct(payload: any): Observable<any> {
     return this.http.post(
       `${this.baseAdmin}/products`,
@@ -35,9 +36,10 @@ export class ProductService {
     );
   }
 
-  // -----------------------------------------------------
-  // PRODUCT IMAGE UPLOAD (ADMIN)
-  // -----------------------------------------------------
+  // ===========================
+  // PRODUCT IMAGE UPLOAD
+  // ===========================
+
   uploadImages(files: File[]): Observable<{ urls: string[] }> {
     const fd = new FormData();
     files.forEach(f => fd.append('images', f));
@@ -49,23 +51,25 @@ export class ProductService {
     );
   }
 
-  // -----------------------------------------------------
-  // SLIDER IMAGE UPLOAD (ADMIN)
-  // -----------------------------------------------------
-  uploadSliderImages(files: File[]): Observable<{ urls: string[] }> {
+  // ===========================
+  // SLIDER UPLOAD (DESKTOP + MOBILE)
+  // ===========================
+
+  uploadSliderImages(files: File[]): Observable<{ urls: { desktop: string; mobile: string }[] }> {
     const fd = new FormData();
     files.forEach(f => fd.append('images', f));
 
-    return this.http.post<{ urls: string[] }>(
+    return this.http.post<{ urls: { desktop: string; mobile: string }[] }>(
       `${this.baseAdmin}/slider/upload`,
       fd,
       { withCredentials: true }
     );
   }
 
-  // -----------------------------------------------------
+  // ===========================
   // SLIDER CRUD (ADMIN)
-  // -----------------------------------------------------
+  // ===========================
+
   createSliders(sliders: any[]): Observable<any> {
     return this.http.post(
       `${this.baseAdmin}/slider`,
@@ -92,17 +96,21 @@ export class ProductService {
     );
   }
 
-  // -----------------------------------------------------
-  // PUBLIC API (no login required)
-  // -----------------------------------------------------
+  // ===========================
+  // PUBLIC ENDPOINTS (HOME PAGE)
+  // ===========================
 
-  /** Public product list: GET /products */
-  getPublicProducts(): Observable<any> {
-    return this.http.get(`${this.basePublic}/products`);
+  /** PUBLIC – home page sliders */
+  getSlidersPublic(): Observable<{ sliders: any[] }> {
+    return this.http.get<{ sliders: any[] }>(
+      `${this.basePublic}/sliders`
+    );
   }
 
-  /** Public slider list: GET /sliders */
-  getSlidersPublic(): Observable<any> {
-    return this.http.get(`${this.basePublic}/sliders`);
+  /** PUBLIC – home page products */
+  getPublicProducts(): Observable<{ products: any[] }> {
+    return this.http.get<{ products: any[] }>(
+      `${this.basePublic}/products`
+    );
   }
 }

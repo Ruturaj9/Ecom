@@ -38,7 +38,26 @@ export class HomeComponent implements OnDestroy {
     this.loadProducts();
   }
 
+  // -----------------------------
+  // FIX: Return correct image (string OR object {desktop,mobile})
+  // -----------------------------
+  getImage(slide: any): string {
+    if (!slide || !slide.imageUrl) return '';
+
+    // Case 1: string (legacy URL)
+    if (typeof slide.imageUrl === 'string') {
+      return slide.imageUrl;
+    }
+
+    // Case 2: object {desktop, mobile}
+    return window.innerWidth < 768
+      ? slide.imageUrl.mobile
+      : slide.imageUrl.desktop;
+  }
+
+  // -----------------------------
   // Load Public Sliders
+  // -----------------------------
   loadSliders() {
     this.productSvc.getSlidersPublic().subscribe({
       next: (res: any) => {
@@ -53,7 +72,9 @@ export class HomeComponent implements OnDestroy {
     });
   }
 
+  // -----------------------------
   // Load Public Products
+  // -----------------------------
   loadProducts() {
     this.productSvc.getPublicProducts().subscribe({
       next: (res: any) => {
@@ -138,7 +159,7 @@ export class HomeComponent implements OnDestroy {
   }
 
   // -----------------------------
-  // FIX for missing method (click)="go(slide)"
+  // Fix: Button link support
   // -----------------------------
   go(slide: any) {
     if (!slide?.buttonLink) return;

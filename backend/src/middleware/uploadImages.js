@@ -1,17 +1,13 @@
 // src/middleware/uploadImages.js
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const cloudinary = require('../config/cloudinary');
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'ecommerce_sliders',
-    allowed_formats: ['jpeg', 'jpg', 'png', 'webp'],
-    transformation: [{ quality: 'auto' }, { fetch_format: 'auto' }],
-  },
+const storage = multer.memoryStorage(); // <-- FIXED
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB
+  }
 });
-
-const upload = multer({ storage });
 
 module.exports = upload;
