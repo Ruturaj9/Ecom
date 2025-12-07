@@ -8,7 +8,8 @@ export interface SliderItem {
   subtitle: string;
   buttonText: string;
   buttonLink: string;
-  imageUrl: string | { desktop: string; mobile: string };
+  desktop: string;     // FIX
+  mobile: string;      // FIX
   order: number;
   active: boolean;
 }
@@ -16,7 +17,7 @@ export interface SliderItem {
 @Injectable({ providedIn: 'root' })
 export class SliderService {
 
-  private basePublic = 'http://localhost:4000';
+  private baseApi = 'http://localhost:4000';
 
   constructor(private http: HttpClient) {}
 
@@ -25,11 +26,8 @@ export class SliderService {
   error = signal('');
 
   resolveImage(item: SliderItem): string {
-    if (typeof item.imageUrl === 'string') return item.imageUrl;
-
-    return window.innerWidth < 768
-      ? item.imageUrl.mobile
-      : item.imageUrl.desktop;
+    const isMobile = window.innerWidth < 768;
+    return isMobile ? item.mobile : item.desktop;
   }
 
   /** Load PUBLIC sliders */
@@ -37,7 +35,7 @@ export class SliderService {
     this.loading.set(true);
     this.error.set('');
 
-    this.http.get<{ sliders: SliderItem[] }>(`${this.basePublic}/sliders`)
+    this.http.get<{ sliders: SliderItem[] }>(`${this.baseApi}/sliders`)
       .subscribe({
         next: res => {
           this.sliders.set(res.sliders);

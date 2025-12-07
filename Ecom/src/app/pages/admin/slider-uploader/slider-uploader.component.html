@@ -1,12 +1,10 @@
 <div class="max-w-5xl mx-auto px-6 py-8 space-y-8">
 
-  <!-- HEADER -->
   <div>
     <h1 class="text-3xl font-bold text-gray-800">Slider Manager</h1>
     <p class="text-gray-500 mt-1">Upload homepage slider images & configure details.</p>
   </div>
 
-  <!-- UPLOAD SECTION -->
   <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
     <h2 class="text-xl font-semibold mb-4">Upload Images</h2>
 
@@ -17,7 +15,7 @@
       </label>
 
       <div class="flex items-center border rounded-lg overflow-hidden">
-        <input #urlInput placeholder="Paste image URL or {desktop,mobile}" class="px-3 py-2 outline-none w-56" />
+        <input #urlInput placeholder="Paste {desktop,mobile}" class="px-3 py-2 outline-none w-56" />
         <button
           class="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition"
           (click)="addExternalUrl(urlInput.value); urlInput.value=''">
@@ -38,7 +36,6 @@
     }
   </div>
 
-  <!-- PREVIEWS -->
   @if (previews.length > 0) {
 
     <div class="space-y-6">
@@ -51,7 +48,6 @@
           <div class="bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition" cdkDrag>
             <div class="flex gap-5">
 
-              <!-- IMAGE PREVIEW -->
               <img [src]="getImage(p)" class="w-40 h-28 object-cover rounded-lg border" />
 
               <div class="flex-1 space-y-3">
@@ -77,7 +73,6 @@
                   </div>
                 </div>
 
-                <!-- ACTIVE toggle -->
                 <div class="flex items-center gap-2 mt-1">
                   <input type="checkbox" class="w-4 h-4" [(ngModel)]="p.active" />
                   <label class="text-sm text-gray-700">Active</label>

@@ -5,8 +5,8 @@ const Product = require('../../models/Product');
 const validateRequest = require('../../middleware/validateRequest');
 const requireAdmin = require('../../middleware/requireAdmin');
 const auditLogger = require('../../middleware/auditLogger');
-const upload = require('../../middleware/uploadImages');
-const cloudinary = require('../../config/cloudinary');
+
+const { upload } = require('../../middleware/uploadImages');
 
 const router = express.Router();
 
@@ -19,7 +19,7 @@ function extractPublicId(url) {
     const match = url.match(regex);
     if (!match) return null;
 
-    const folder = match[1] || ""; 
+    const folder = match[1] || "";
     const file = match[2];
     return folder + file;
   } catch {
@@ -32,6 +32,8 @@ function extractPublicId(url) {
  */
 async function deleteCloudinaryUrls(urls = []) {
   if (!Array.isArray(urls) || urls.length === 0) return;
+
+  const cloudinary = require('../../config/cloudinary');
 
   const tasks = urls.map(async (url) => {
     const publicId = extractPublicId(url);
@@ -50,7 +52,6 @@ async function deleteCloudinaryUrls(urls = []) {
 
 /**
  * CREATE PRODUCT
- * POST /admin/products
  */
 router.post(
   '/',
@@ -60,33 +61,24 @@ router.post(
     body('price').isNumeric(),
     body('description').optional().isString(),
     body('images').optional().isArray(),
-    body('images.*').optional().isURL()
+    body('category').optional().isMongoId()
   ],
   validateRequest,
   async (req, res, next) => {
     try {
-      const { title, description, price, images = [] } = req.body;
+      const { title, description, price, images = [], category = null } = req.body;
 
       const product = await Product.create({
         title,
         description,
         price,
         images,
+        category,
         createdBy: req.admin.id
       });
 
-      await auditLogger({
-        req,
-        actorId: req.admin.id,
-        actorEmail: req.admin.email,
-        action: 'product.create',
-        resourceType: 'Product',
-        resourceId: product._id,
-        before: null,
-        after: product
-      });
+      return res.status(201).json({ product });
 
-      res.status(201).json({ product });
     } catch (err) {
       next(err);
     }
@@ -94,12 +86,13 @@ router.post(
 );
 
 /**
- * GET ALL PRODUCTS
+ * GET PRODUCTS
  */
 router.get('/', requireAdmin(['admin']), async (req, res, next) => {
   try {
     const products = await Product.find()
       .sort({ createdAt: -1 })
+      .populate('category')
       .limit(50)
       .lean();
 
@@ -120,51 +113,42 @@ router.put(
     param('id').isMongoId(),
     body('title').optional().isString(),
     body('price').optional().isNumeric(),
-    body('description').optional().isString()
+    body('description').optional().isString(),
+    body('category').optional().isMongoId()
   ],
   validateRequest,
   async (req, res, next) => {
     try {
       const id = req.params.id;
+
       const before = await Product.findById(id).lean();
-      if (!before) return res.status(404).json({ error: 'Product not found' });
+      if (!before) return res.status(404).json({ error: "Product not found" });
 
-      let existingImages = [];
-      if (req.body.existingImages) {
-        try {
-          existingImages = JSON.parse(req.body.existingImages);
-        } catch {
-          return res.status(400).json({ error: 'existingImages must be JSON array' });
-        }
-      }
+      const existingImages = req.body.existingImages
+        ? JSON.parse(req.body.existingImages)
+        : before.images;
 
-      const newUploadedImages = req.files.map((f) => f.path);
-      const finalImages = [...existingImages, ...newUploadedImages];
+      const newImages = req.files.map(f => f.path);
 
-      const updateData = {
-        title: req.body.title,
-        price: req.body.price,
-        description: req.body.description,
-        images: finalImages
-      };
+      const finalImages = [...existingImages, ...newImages];
 
-      const updated = await Product.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+      const updated = await Product.findByIdAndUpdate(
+        id,
+        {
+          title: req.body.title,
+          price: req.body.price,
+          description: req.body.description,
+          images: finalImages,
+          category: req.body.category || before.category
+        },
+        { new: true }
+      );
 
-      const removedImages = before.images.filter((img) => !finalImages.includes(img));
-      await deleteCloudinaryUrls(removedImages);
+      const removed = before.images.filter(i => !finalImages.includes(i));
+      await deleteCloudinaryUrls(removed);
 
-      await auditLogger({
-        req,
-        actorId: req.admin.id,
-        actorEmail: req.admin.email,
-        action: 'product.update',
-        resourceType: 'Product',
-        resourceId: updated._id,
-        before,
-        after: updated
-      });
+      return res.json({ product: updated });
 
-      res.json({ product: updated });
     } catch (err) {
       next(err);
     }
@@ -182,25 +166,16 @@ router.delete(
   async (req, res, next) => {
     try {
       const id = req.params.id;
+
       const before = await Product.findById(id).lean();
-      if (!before) return res.status(404).json({ error: 'Product not found' });
+      if (!before) return res.status(404).json({ error: "Product not found" });
 
       await Product.findByIdAndDelete(id);
 
       await deleteCloudinaryUrls(before.images);
 
-      await auditLogger({
-        req,
-        actorId: req.admin.id,
-        actorEmail: req.admin.email,
-        action: 'product.delete',
-        resourceType: 'Product',
-        resourceId: id,
-        before,
-        after: null
-      });
+      return res.json({ message: "Product deleted" });
 
-      res.json({ message: 'Product deleted' });
     } catch (err) {
       next(err);
     }

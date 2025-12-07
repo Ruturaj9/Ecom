@@ -6,7 +6,7 @@ import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-
 import { ProductService } from '../../../services/product.service';
 import { finalize } from 'rxjs/operators';
 
-type UrlVariant = string | { desktop: string; mobile: string };
+type UrlVariant = { desktop: string; mobile: string };
 
 interface SlidePreview {
   file?: File;
@@ -33,7 +33,6 @@ export class SliderUploaderComponent {
   uploading = false;
   message = '';
 
-  /** notify home page / preview page */
   @Output() slidersUpdated = new EventEmitter<void>();
 
   constructor(
@@ -41,14 +40,12 @@ export class SliderUploaderComponent {
     private cdr: ChangeDetectorRef
   ) {}
 
-  /** pick correct image for preview */
+  /** pick correct preview image */
   getImage(p: SlidePreview): string {
     if (!p.url) return p.tempPreview || '';
-    if (typeof p.url === 'string') return p.url;
-    return p.url.desktop || p.url.mobile || '';
+    return p.url.desktop;
   }
 
-  /** Disable Save button until every image is uploaded */
   disableSaveButton(): boolean {
     return (
       this.uploading ||
@@ -57,7 +54,6 @@ export class SliderUploaderComponent {
     );
   }
 
-  /** file input selection */
   onFilesSelected(ev: Event) {
     const input = ev.target as HTMLInputElement;
     if (!input.files) return;
@@ -66,7 +62,6 @@ export class SliderUploaderComponent {
     this.addFiles(files);
   }
 
-  /** create preview objects */
   addFiles(files: File[]) {
     for (const file of files) {
       if (!file.type.startsWith('image/')) continue;
@@ -83,7 +78,6 @@ export class SliderUploaderComponent {
     this.cdr.markForCheck();
   }
 
-  /** upload images to Cloudinary */
   uploadToServer() {
     const files = this.previews.filter(p => p.file).map(p => p.file!) as File[];
     if (files.length === 0) {
@@ -127,26 +121,25 @@ export class SliderUploaderComponent {
       });
   }
 
-  /** external url add */
   addExternalUrl(raw: string) {
     if (!raw.trim()) return;
-    let parsed: UrlVariant = raw.trim();
 
     try {
-      const obj = JSON.parse(raw);
-      if (obj.desktop || obj.mobile) parsed = obj;
-    } catch {}
-
-    this.previews.push({
-      url: parsed,
-      uploaded: true,
-      active: true
-    });
+      const obj = JSON.parse(raw.trim());
+      if (obj.desktop && obj.mobile) {
+        this.previews.push({
+          url: obj,
+          uploaded: true,
+          active: true
+        });
+      }
+    } catch {
+      this.message = "Invalid JSON format. Expected {desktop, mobile}.";
+    }
 
     this.cdr.markForCheck();
   }
 
-  /** remove */
   removePreview(i: number) {
     const p = this.previews[i];
     if (p.tempPreview) URL.revokeObjectURL(p.tempPreview);
@@ -154,18 +147,18 @@ export class SliderUploaderComponent {
     this.cdr.markForCheck();
   }
 
-  /** reorder */
   drop(ev: CdkDragDrop<SlidePreview[]>) {
     moveItemInArray(this.previews, ev.previousIndex, ev.currentIndex);
     this.cdr.markForCheck();
   }
 
-  /** save everything */
+  /** SAVE to backend */
   saveSlider() {
     if (this.disableSaveButton()) return;
 
     const payload = this.previews.map((p, index) => ({
-      imageUrl: p.url,
+      desktop: (p.url as UrlVariant).desktop,
+      mobile: (p.url as UrlVariant).mobile,
       title: p.title || '',
       subtitle: p.subtitle || '',
       buttonText: p.buttonText || '',
@@ -174,11 +167,11 @@ export class SliderUploaderComponent {
       active: p.active ?? true
     }));
 
-    this.productSvc.saveSlider(payload).subscribe({
+    this.productSvc.createSliders(payload).subscribe({
       next: () => {
         this.message = 'Slider saved successfully!';
         this.previews = [];
-        this.slidersUpdated.emit();   // notify home to refresh
+        this.slidersUpdated.emit();
         this.cdr.markForCheck();
       },
       error: () => this.message = 'Failed to save slider.'

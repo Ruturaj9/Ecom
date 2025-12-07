@@ -1,39 +1,16 @@
+// src/routes/admin/productImages.js
 const express = require('express');
-const upload = require('../../middleware/uploadImages');
-const requireAdmin = require('../../middleware/requireAdmin');
-const auditLogger = require('../../middleware/auditLogger');
-
 const router = express.Router();
 
-/**
- * Upload one OR many images
- * POST /admin/products/upload
- */
-router.post(
-  '/',
-  requireAdmin(['admin']),
-  upload.array('images', 6), // ⭐ allows 1–6 images
-  async (req, res, next) => {
-    try {
-      const urls = req.files.map(f => f.path); // Cloudinary URLs
+const { upload, formatUploadResponse } = require('../../middleware/uploadImages');
 
-      // Audit logging
-      await auditLogger({
-        req,
-        actorId: req.admin.id,
-        actorEmail: req.admin.email,
-        action: 'product.image.upload',
-        resourceType: 'ProductImage',
-        resourceId: null,
-        before: null,
-        after: { urls }
-      });
-
-      res.json({ urls });
-    } catch (err) {
-      next(err);
-    }
+router.post('/images', upload.array('images', 6), (req, res) => {
+  try {
+    return res.json(formatUploadResponse(req, req.files));
+  } catch (err) {
+    console.error("PRODUCT IMAGES ERROR:", err);
+    return res.status(500).json({ error: "Upload failed" });
   }
-);
+});
 
 module.exports = router;

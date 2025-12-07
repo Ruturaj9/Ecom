@@ -52,7 +52,8 @@ export class ProductService {
   }
 
   // ===========================
-  // SLIDER UPLOAD (DESKTOP + MOBILE)
+  // SLIDER IMAGE UPLOAD
+  // Returns: { urls: [{ desktop, mobile }] }
   // ===========================
 
   uploadSliderImages(files: File[]): Observable<{ urls: { desktop: string; mobile: string }[] }> {
@@ -70,6 +71,7 @@ export class ProductService {
   // SLIDER CRUD (ADMIN)
   // ===========================
 
+  /** Create slider items (desktop+mobile pairs) */
   createSliders(sliders: any[]): Observable<any> {
     return this.http.post(
       `${this.baseAdmin}/slider`,
@@ -78,10 +80,7 @@ export class ProductService {
     );
   }
 
-  saveSlider(body: any[]): Observable<any> {
-    return this.createSliders(body);
-  }
-
+  /** Get all sliders (admin) */
   getSliders(): Observable<any> {
     return this.http.get(
       `${this.baseAdmin}/slider`,
@@ -89,6 +88,7 @@ export class ProductService {
     );
   }
 
+  /** Delete slider */
   deleteSlider(id: string): Observable<any> {
     return this.http.delete(
       `${this.baseAdmin}/slider/${id}`,
@@ -97,17 +97,15 @@ export class ProductService {
   }
 
   // ===========================
-  // PUBLIC ENDPOINTS (HOME PAGE)
+  // PUBLIC ENDPOINTS
   // ===========================
 
-  /** PUBLIC – home page sliders */
   getSlidersPublic(): Observable<{ sliders: any[] }> {
     return this.http.get<{ sliders: any[] }>(
       `${this.basePublic}/sliders`
     );
   }
 
-  /** PUBLIC – home page products */
   getPublicProducts(): Observable<{ products: any[] }> {
     return this.http.get<{ products: any[] }>(
       `${this.basePublic}/products`

@@ -5,15 +5,21 @@ const Slider = require('../../models/Slider');
 const validateRequest = require('../../middleware/validateRequest');
 const requireAdmin = require('../../middleware/requireAdmin');
 const auditLogger = require('../../middleware/auditLogger');
-const upload = require('../../middleware/uploadImages');
-const cloudinary = require('../../config/cloudinary');
+
+// ⭐ IMPORTANT — correct import
+const { upload, formatUploadResponse } = require('../../middleware/uploadImages');
 
 const router = express.Router();
 
 /**
- * Upload slider images (memoryStorage → Cloudinary upload)
+ * UPLOAD SLIDER IMAGES
+ * POST /admin/slider/upload
  * Returns:
- *  { urls: [ { desktop: <url>, mobile: <url> }, ... ] }
+ * {
+ *    urls: [
+ *      { desktop: "...", mobile: "..." }
+ *    ]
+ * }
  */
 router.post(
   '/upload',
@@ -25,112 +31,40 @@ router.post(
         return res.status(400).json({ error: 'No images uploaded' });
       }
 
-      const uploadResults = [];
-
-      for (const file of req.files) {
-        if (!file.buffer) {
-          console.warn("Skipping file without buffer", file);
-          continue;
-        }
-
-        // Upload DESKTOP VERSION
-        const desktopPromise = cloudinary.uploader.upload_stream({
-          folder: 'ecommerce_sliders',
-          width: 1600,
-          height: 600,
-          crop: 'fill',
-          gravity: 'auto',
-          quality: 'auto',
-          fetch_format: 'auto'
-        });
-
-        // Upload MOBILE VERSION
-        const mobilePromise = cloudinary.uploader.upload_stream({
-          folder: 'ecommerce_sliders',
-          width: 800,
-          height: 350,
-          crop: 'fill',
-          gravity: 'auto',
-          quality: 'auto',
-          fetch_format: 'auto'
-        });
-
-        // Convert upload_stream to promise
-        const streamUpload = (stream, buffer) =>
-          new Promise((resolve, reject) => {
-            const cldStream = stream;
-            cldStream.on('finish', resolve);
-            cldStream.on('error', reject);
-            cldStream.end(buffer);
-          });
-
-        const desktopRes = await new Promise((resolve, reject) => {
-          const upload = cloudinary.uploader.upload_stream(
-            {
-              folder: 'ecommerce_sliders',
-              width: 1600,
-              height: 600,
-              crop: 'fill',
-              gravity: 'auto',
-              quality: 'auto',
-              fetch_format: 'auto'
-            },
-            (err, result) => (err ? reject(err) : resolve(result))
-          );
-          upload.end(file.buffer);
-        });
-
-        const mobileRes = await new Promise((resolve, reject) => {
-          const upload = cloudinary.uploader.upload_stream(
-            {
-              folder: 'ecommerce_sliders',
-              width: 800,
-              height: 350,
-              crop: 'fill',
-              gravity: 'auto',
-              quality: 'auto',
-              fetch_format: 'auto'
-            },
-            (err, result) => (err ? reject(err) : resolve(result))
-          );
-          upload.end(file.buffer);
-        });
-
-        uploadResults.push({
-          desktop: desktopRes.secure_url,
-          mobile: mobileRes.secure_url
-        });
-      }
+      // Uses automatic CloudinaryStorage upload + auto desktop/mobile formatter
+      const result = formatUploadResponse(req, req.files);
 
       await auditLogger({
         req,
         actorId: req.admin.id,
         actorEmail: req.admin.email,
         action: 'slider.image.upload',
-        resourceType: 'SliderImage',
+        resourceType: 'SliderImages',
         resourceId: null,
         before: null,
-        after: { urls: uploadResults }
+        after: result
       });
 
-      res.json({ urls: uploadResults });
+      res.json(result);
 
     } catch (err) {
-      console.error("UPLOAD ERROR:", err);
+      console.error("SLIDER UPLOAD ERROR:", err);
       next(err);
     }
   }
 );
 
 /**
- * Save slider items
+ * CREATE SLIDER ITEMS
+ * POST /admin/slider
  */
 router.post(
   '/',
   requireAdmin(['admin']),
   [
     body('sliders').isArray({ min: 1 }),
-    body('sliders.*.imageUrl').notEmpty(),
+    body('sliders.*.desktop').notEmpty(),
+    body('sliders.*.mobile').notEmpty(),
   ],
   validateRequest,
   async (req, res, next) => {
@@ -146,10 +80,11 @@ router.post(
           subtitle: s.subtitle || '',
           buttonText: s.buttonText || '',
           buttonLink: s.buttonLink || '',
-          imageUrl: s.imageUrl,
+          desktop: s.desktop,
+          mobile: s.mobile,
           order,
           active: s.active ?? true,
-          createdBy: req.admin.id
+          createdBy: req.admin.id,
         });
 
         created.push(saved);
@@ -164,15 +99,20 @@ router.post(
 );
 
 /**
- * Admin list sliders
+ * GET SLIDER LIST
+ * GET /admin/slider
  */
-router.get('/', requireAdmin(['admin']), async (req, res) => {
-  const list = await Slider.find().sort({ order: 1 }).lean();
-  res.json({ sliders: list });
+router.get('/', requireAdmin(['admin']), async (req, res, next) => {
+  try {
+    const list = await Slider.find().sort({ order: 1 }).lean();
+    res.json({ sliders: list });
+  } catch (err) {
+    next(err);
+  }
 });
 
 /**
- * Update slider
+ * UPDATE SLIDER
  */
 router.put(
   '/:id',
@@ -195,7 +135,7 @@ router.put(
 );
 
 /**
- * Delete slider
+ * DELETE SLIDER
  */
 router.delete(
   '/:id',
