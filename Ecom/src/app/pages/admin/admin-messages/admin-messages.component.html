@@ -1,0 +1,96 @@
+<div class="max-w-6xl mx-auto p-8">
+
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Contact Messages</h1>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <p class="text-gray-600">Loading messages…</p>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <p class="text-red-600">{{ error() }}</p>
+  }
+
+  <!-- Table -->
+  @if (!loading() && messages().length > 0) {
+
+    <div class="overflow-x-auto bg-white shadow rounded-xl">
+      <table class="min-w-full text-left">
+        <thead>
+          <tr class="border-b bg-gray-50 text-gray-700">
+            <th class="p-4">Name</th>
+            <th class="p-4">Email</th>
+            <th class="p-4">Phone</th>
+            <th class="p-4">Date</th>
+            <th class="p-4 text-center">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (msg of messages(); track msg._id) {
+            <tr class="border-b hover:bg-gray-50">
+              <td class="p-4">{{ msg.name }}</td>
+              <td class="p-4">{{ msg.email }}</td>
+              <td class="p-4">{{ msg.phone }}</td>
+              <td class="p-4">{{ msg.createdAt | date:'medium' }}</td>
+
+              <td class="p-4 flex justify-center gap-3">
+                <button
+                  class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  (click)="openView(msg)">
+                  View
+                </button>
+
+                <button
+                  class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                  (click)="deleteMessage(msg._id)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+
+      </table>
+    </div>
+  }
+
+  <!-- No Messages -->
+  @if (!loading() && messages().length === 0) {
+    <p class="text-gray-500 mt-4">No messages found.</p>
+  }
+
+  <!-- MODAL -->
+  @if (viewMessage) {
+
+    <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-6">
+      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg">
+
+        <h2 class="text-xl font-semibold mb-4">Message Details</h2>
+
+        <div class="space-y-2">
+          <p><strong>Name:</strong> {{ viewMessage.name }}</p>
+          <p><strong>Email:</strong> {{ viewMessage.email }}</p>
+          <p><strong>Phone:</strong> {{ viewMessage.phone }}</p>
+          <p><strong>Message:</strong></p>
+          <p class="bg-gray-100 p-3 rounded">{{ viewMessage.message }}</p>
+          <p class="text-sm text-gray-500 mt-2">
+            Submitted {{ viewMessage.createdAt | date:'medium' }}
+          </p>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <button
+            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            (click)="closeView()">
+            Close
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  }
+
+</div>

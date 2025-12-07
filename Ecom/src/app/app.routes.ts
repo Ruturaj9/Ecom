@@ -111,7 +111,17 @@ export const routes: Routes = [
           import('./pages/admin/audit-logs/audit-logs.component')
             .then(m => m.AuditLogsComponent),
         runGuardsAndResolvers: 'always'
+      },
+
+      // ⭐ NEW ADMIN ROUTE — CONTACT MESSAGES
+      {
+        path: 'messages',
+        loadComponent: () =>
+          import('./pages/admin/admin-messages/admin-messages.component')
+            .then(m => m.AdminMessagesComponent),
+        runGuardsAndResolvers: 'always'
       }
+
     ]
   },
 

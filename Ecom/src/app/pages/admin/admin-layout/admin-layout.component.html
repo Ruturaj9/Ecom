@@ -27,6 +27,12 @@
       <a routerLink="/admin/logs" routerLinkActive="bg-gray-800"
          class="block px-3 py-2 rounded hover:bg-gray-800">Audit Logs</a>
 
+      <!-- ⭐ NEW MENU ITEM ADDED HERE -->
+      <a routerLink="/admin/messages" routerLinkActive="bg-gray-800"
+         class="block px-3 py-2 rounded hover:bg-gray-800">
+        Contact Messages
+      </a>
+
     </nav>
 
     <button class="m-4 px-3 py-2 bg-red-600 rounded hover:bg-red-700 text-white"
@@ -37,7 +43,6 @@
 
   <!-- Right content -->
   <main class="flex-1 p-6">
-    <!-- onActivate will be called when a new child component is activated -->
     <router-outlet (activate)="onActivate($event)"></router-outlet>
   </main>
 

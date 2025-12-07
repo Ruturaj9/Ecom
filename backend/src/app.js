@@ -57,6 +57,7 @@ app.use("/products", productRoutes);
 
 // Public API (Homepage Sliders)
 app.use('/sliders', require('./routes/slider'));   // ✅ FIXED
+app.use('/contact', require('./routes/contact'));
 
 // Admin API (Protected)
 app.use('/admin/products', require('./routes/admin/products'));
@@ -65,6 +66,7 @@ app.use('/admin/categories', require('./routes/admin/categories'));
 app.use('/admin/upload', require('./routes/admin/upload'));
 app.use('/admin/products/upload', require('./routes/admin/productImages'));
 app.use('/admin/slider', requireAdmin(['admin']), require('./routes/admin/slider'));
+app.use('/admin/contact-messages', require('./routes/admin/contactMessages'));
 
 app.get("/", (req, res) => {
   res.json({
