@@ -6,11 +6,12 @@ const validateRequest = require('../../middleware/validateRequest');
 const requireAdmin = require('../../middleware/requireAdmin');
 const auditLogger = require('../../middleware/auditLogger');
 const upload = require('../../middleware/uploadImages');
+const cloudinary = require('../../config/cloudinary');
 
 const router = express.Router();
 
 /**
- * Upload slider images
+ * Upload slider images (Auto Resize: 1600×600)
  */
 router.post(
   '/upload',
@@ -22,7 +23,21 @@ router.post(
         return res.status(400).json({ error: 'No images uploaded' });
       }
 
-      const urls = req.files.map((f) => f.path);
+      // Transform images before saving
+      const uploadPromises = req.files.map((f) =>
+        cloudinary.uploader.upload(f.path, {
+          folder: 'ecommerce_sliders',
+          width: 1600,       // perfect slider width
+          height: 600,       // perfect slider height
+          crop: 'fill',      // fills container
+          gravity: 'auto',   // smart focus cropping
+          quality: 'auto',
+          fetch_format: 'auto'
+        })
+      );
+
+      const results = await Promise.all(uploadPromises);
+      const urls = results.map((r) => r.secure_url);
 
       await auditLogger({
         req,
@@ -66,8 +81,7 @@ router.post(
 
       for (const s of sliders) {
         const order =
-          s.order ||
-          (await Slider.countDocuments()) + 1;
+          s.order || (await Slider.countDocuments()) + 1;
 
         const doc = {
           title: s.title || '',
