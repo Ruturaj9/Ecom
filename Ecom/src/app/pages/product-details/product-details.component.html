@@ -1,71 +1,85 @@
 <div class="max-w-7xl mx-auto px-4 py-10">
 
-  <!-- Back button -->
-  <button
-    routerLink="/products"
-    class="mb-6 px-4 py-2 border rounded-lg hover:bg-gray-100"
-  >
-    ← Back to products
-  </button>
+  <!-- Loading -->
+  @if (loading) {
+    <p class="text-gray-600 text-lg">Loading product...</p>
+  }
 
-  <div class="grid md:grid-cols-2 gap-10">
+  <!-- Not Found -->
+  @if (!loading && !product) {
+    <p class="text-red-600 text-xl">Product not found.</p>
+    <button routerLink="/products" class="mt-4 px-4 py-2 bg-gray-200 rounded-lg">
+      ← Back to Products
+    </button>
+  }
 
-    <!-- Product Image -->
-    <div>
-      <img
-        [src]="product.image"
-        class="w-full rounded-xl shadow"
-      />
-    </div>
+  <!-- Product Details -->
+  @if (!loading && product) {
 
-    <!-- Product Info -->
-    <div>
-      <h1 class="text-3xl font-bold">{{ product.title }}</h1>
+    <button
+      routerLink="/products"
+      class="mb-6 px-4 py-2 border rounded-lg hover:bg-gray-100"
+    >
+      ← Back to products
+    </button>
 
-      <div class="text-green-600 text-2xl mt-2 font-bold">
-        ₹{{ product.price }} / kg
+    <div class="grid md:grid-cols-2 gap-10">
+
+      <!-- Product Image -->
+      <div>
+        <img
+          [src]="product.images?.[0]"
+          class="w-full rounded-xl shadow"
+        />
       </div>
 
-      <p class="text-gray-600 mt-3">
-        Category: <span class="font-medium">{{ product.category }}</span>
-      </p>
+      <!-- Product Info -->
+      <div>
+        <h1 class="text-3xl font-bold">{{ product.title }}</h1>
 
-      <p class="text-gray-600">
-        Location: <span class="font-medium">{{ product.location }}</span>
-      </p>
+        <div class="text-green-600 text-2xl mt-2 font-bold">
+          ₹{{ product.price }}
+        </div>
 
-      <p class="mt-5 text-gray-700 leading-7">
-        Fresh and organic {{ product.title }} directly sourced from local farmers.
-        Grown naturally without harmful chemicals, hand-picked and delivered with care.
-      </p>
+        <p class="text-gray-600 mt-3">
+          Category:
+          <span class="font-medium">
+            {{ product.category?.name || '—' }}
+          </span>
+        </p>
 
-      <button
-        class="mt-6 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
-      >
-        Contact Farmer
-      </button>
+        <p class="mt-5 text-gray-700 leading-7">
+          {{ product.description || 'No description available.' }}
+        </p>
 
-      <button
-        (click)="addToCart()"
-        class="mt-6 ml-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
-      >
-        Add to Cart
-      </button>
+        <button
+          class="mt-6 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
+        >
+          Contact Seller
+        </button>
+
+        <button
+          (click)="addToCart()"
+          class="mt-6 ml-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+        >
+          Add to Cart
+        </button>
+
+      </div>
 
     </div>
 
-  </div>
+    <!-- Similar products -->
+    @if (similarProducts.length > 0) {
+      <div class="mt-12">
+        <h2 class="text-2xl font-bold mb-4">Similar Products</h2>
 
-  <!-- Similar products -->
-  <div class="mt-12">
-    <h2 class="text-2xl font-bold mb-4">Similar Products</h2>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-      <app-product-card
-        *ngFor="let p of allProducts"
-        [product]="p"
-      ></app-product-card>
-    </div>
-  </div>
-
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          @for (p of similarProducts; track p._id) {
+            <app-product-card [product]="p"></app-product-card>
+          }
+        </div>
+      </div>
+    }
+  }
 </div>

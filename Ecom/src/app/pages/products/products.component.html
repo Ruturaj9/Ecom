@@ -1,7 +1,8 @@
 <div id="top" class="scroll-anchor"></div>
+
 <div class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-4 gap-8">
 
-  <!-- Sidebar filters -->
+  <!-- Sidebar Filters -->
   <div class="md:col-span-1 bg-white p-5 rounded-xl shadow">
     <h2 class="text-lg font-bold mb-4">Filters</h2>
 
@@ -10,6 +11,7 @@
     <input
       type="text"
       [(ngModel)]="searchText"
+      (input)="onFilterChanged()"
       class="w-full px-3 py-2 border rounded-lg mb-4"
       placeholder="Search product name..."
     />
@@ -18,6 +20,7 @@
     <label class="block text-sm font-medium mb-1">Category</label>
     <select
       [(ngModel)]="selectedCategory"
+      (change)="onFilterChanged()"
       class="w-full px-3 py-2 border rounded-lg mb-4"
     >
       @for (c of categories; track $index) {
@@ -25,10 +28,11 @@
       }
     </select>
 
-    <!-- Sorting -->
+    <!-- Sort -->
     <label class="block text-sm font-medium mb-1">Sort By</label>
     <select
       [(ngModel)]="sortBy"
+      (change)="onFilterChanged()"
       class="w-full px-3 py-2 border rounded-lg"
     >
       <option value="none">None</option>
@@ -37,15 +41,65 @@
     </select>
   </div>
 
-  <!-- Products grid -->
+  <!-- Products Grid -->
   <div class="md:col-span-3">
     <h2 class="text-2xl font-bold mb-4">Products</h2>
 
+    @if (loading) {
+      <p class="text-gray-600">Loading products...</p>
+    }
+
+    @if (!loading && errorMessage) {
+      <p class="text-red-600">{{ errorMessage }}</p>
+    }
+
+    @if (!loading && products.length === 0 && !errorMessage) {
+      <p class="text-gray-600">No products found.</p>
+    }
+
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (p of filteredProducts; track p.id) {
+      @for (p of products; track p._id) {
         <app-product-card [product]="p"></app-product-card>
       }
     </div>
-  </div>
 
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="flex items-center justify-between mt-8">
+
+        <button
+          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+          (click)="prevPage()"
+          [disabled]="page === 1">
+          Prev
+        </button>
+
+        <div class="flex gap-2">
+          @for (num of pages(); track num) {
+            <button
+              class="px-3 py-1 rounded font-medium"
+              [class.bg-blue-600]="num === page"
+              [class.text-white]="num === page"
+              [class.bg-gray-200]="num !== page"
+              (click)="goToPage(num)"
+            >
+              {{ num }}
+            </button>
+          }
+        </div>
+
+        <button
+          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+          (click)="nextPage()"
+          [disabled]="page === totalPages">
+          Next
+        </button>
+      </div>
+
+      <div class="text-center text-sm text-gray-600 mt-2">
+        Showing <strong>{{ Math.min(page * limit, total) }}</strong>
+        of <strong>{{ total }}</strong> products
+      </div>
+    }
+  </div>
 </div>

@@ -1,3 +1,4 @@
+// src/app/services/product.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -18,6 +19,13 @@ export class ProductService {
     return this.http.post(
       `${this.baseAdmin}/products`,
       payload,
+      { withCredentials: true }
+    );
+  }
+
+  getProductsPaginated(page: number, limit: number): Observable<any> {
+    return this.http.get(
+      `${this.baseAdmin}/products?page=${page}&limit=${limit}`,
       { withCredentials: true }
     );
   }
@@ -53,7 +61,6 @@ export class ProductService {
 
   // ===========================
   // SLIDER IMAGE UPLOAD
-  // Returns: { urls: [{ desktop, mobile }] }
   // ===========================
 
   uploadSliderImages(files: File[]): Observable<{ urls: { desktop: string; mobile: string }[] }> {
@@ -71,7 +78,6 @@ export class ProductService {
   // SLIDER CRUD (ADMIN)
   // ===========================
 
-  /** Create slider items (desktop+mobile pairs) */
   createSliders(sliders: any[]): Observable<any> {
     return this.http.post(
       `${this.baseAdmin}/slider`,
@@ -80,7 +86,6 @@ export class ProductService {
     );
   }
 
-  /** Get all sliders (admin) */
   getSliders(): Observable<any> {
     return this.http.get(
       `${this.baseAdmin}/slider`,
@@ -88,7 +93,6 @@ export class ProductService {
     );
   }
 
-  /** Delete slider */
   deleteSlider(id: string): Observable<any> {
     return this.http.delete(
       `${this.baseAdmin}/slider/${id}`,
@@ -100,6 +104,25 @@ export class ProductService {
   // PUBLIC ENDPOINTS
   // ===========================
 
+  // <-- NEW: paginated public products (supports optional query params)
+  getPublicProductsPaginated(params: {
+    page?: number;
+    limit?: number;
+    q?: string;
+    category?: string;
+    sort?: 'low-high' | 'high-low' | 'none';
+  }): Observable<any> {
+    const p = params || {};
+    const page = p.page ?? 1;
+    const limit = p.limit ?? 24;
+    const q = p.q ? `&q=${encodeURIComponent(p.q)}` : '';
+    const category = p.category && p.category !== 'All' ? `&category=${encodeURIComponent(p.category)}` : '';
+    const sort = p.sort && p.sort !== 'none' ? `&sort=${encodeURIComponent(p.sort)}` : '';
+
+    const url = `${this.basePublic}/products?page=${page}&limit=${limit}${q}${category}${sort}`;
+    return this.http.get<any>(url);
+  }
+
   getSlidersPublic(): Observable<{ sliders: any[] }> {
     return this.http.get<{ sliders: any[] }>(
       `${this.basePublic}/sliders`
@@ -109,6 +132,25 @@ export class ProductService {
   getPublicProducts(): Observable<{ products: any[] }> {
     return this.http.get<{ products: any[] }>(
       `${this.basePublic}/products`
+    );
+  }
+
+  // ===========================
+  // CATEGORY CRUD (ADMIN)
+  // ===========================
+
+  getCategories(): Observable<any> {
+    return this.http.get(
+      `${this.baseAdmin}/categories`,
+      { withCredentials: true }
+    );
+  }
+
+  createCategory(payload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseAdmin}/categories`,
+      payload,
+      { withCredentials: true }
     );
   }
 }

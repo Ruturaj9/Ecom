@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 
 @Component({
@@ -10,27 +11,50 @@ import { CartService } from '../../services/cart.service';
   imports: [CommonModule, RouterModule, ProductCardComponent],
   templateUrl: './product-details.component.html'
 })
-export class ProductDetailsComponent {
+export class ProductDetailsComponent implements OnInit {
 
   product: any = null;
-
-  allProducts = [
-    { id: 1, title: 'Potatoes', price: 22, category: 'Vegetables', location: 'Pune', image: 'https://picsum.photos/seed/p1/600/400' },
-    { id: 2, title: 'Tomatoes', price: 40, category: 'Vegetables', location: 'Nashik', image: 'https://picsum.photos/seed/p2/600/400' },
-    { id: 3, title: 'Onions', price: 35, category: 'Vegetables', location: 'Solapur', image: 'https://picsum.photos/seed/p3/600/400' },
-    { id: 4, title: 'Banana', price: 55, category: 'Fruits', location: 'Satara', image: 'httpsum.photos/seed/p4/600/400' }
-  ];
+  similarProducts: any[] = [];
+  loading = true;
 
   constructor(
     private route: ActivatedRoute,
+    private productSvc: ProductService,
     private cart: CartService
   ) {}
 
-  // FIX: React to ID changes without reload
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
-      const id = Number(params.get('id'));
-      this.product = this.allProducts.find(p => p.id === id);
+      const id = params.get('id');
+      if (!id) return;
+
+      this.loadProduct(id);
+    });
+  }
+
+  /** Load product + similar products */
+  loadProduct(id: string) {
+    this.loading = true;
+
+    this.productSvc.getPublicProducts().subscribe({
+      next: (res) => {
+        const products = res.products || [];
+
+        this.product = products.find(p => p._id === id) || null;
+        this.loading = false;
+
+        if (this.product) {
+          const categoryName = this.product.category?.name;
+
+          // Similar products (same category)
+          this.similarProducts = products
+            .filter(p => p._id !== id && p.category?.name === categoryName)
+            .slice(0, 8); // top 8 similar
+        }
+      },
+      error: () => {
+        this.loading = false;
+      }
     });
   }
 

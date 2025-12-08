@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+// src/app/pages/products/products.component.ts
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
-import { ActivatedRoute } from '@angular/router';
+import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-products',
@@ -10,55 +11,112 @@ import { ActivatedRoute } from '@angular/router';
   imports: [CommonModule, FormsModule, ProductCardComponent],
   templateUrl: './products.component.html'
 })
-export class ProductsComponent {
+export class ProductsComponent implements OnInit {
 
+  // Filters
   searchText = '';
   selectedCategory: string = 'All';
-  sortBy = 'none';
+  sortBy: 'none' | 'low-high' | 'high-low' = 'none';
 
-  categories = ['All', 'Vegetables', 'Fruits', 'Grains', 'Dairy', 'Pulses', 'Seeds'];
+  categories: string[] = ['All'];
 
-  products = [
-    { id: 1, title: 'Potatoes', price: 22, category: 'Vegetables', location: 'Pune', image: 'https://picsum.photos/seed/p1/600/400' },
-    { id: 2, title: 'Tomatoes', price: 40, category: 'Vegetables', location: 'Nashik', image: 'https://picsum.photos/seed/p2/600/400' },
-    { id: 3, title: 'Onions', price: 35, category: 'Vegetables', location: 'Solapur', image: 'https://picsum.photos/seed/p3/600/400' },
-    { id: 4, title: 'Banana', price: 55, category: 'Fruits', location: 'Satara', image: 'https://picsum.photos/seed/p4/600/400' },
-    { id: 5, title: 'Wheat', price: 30, category: 'Grains', location: 'Kolhapur', image: 'https://picsum.photos/seed/p5/600/400' },
-    { id: 6, title: 'Milk', price: 50, category: 'Dairy', location: 'Nagpur', image: 'https://picsum.photos/seed/p6/600/400' },
-    { id: 7, title: 'Tur Dal', price: 110, category: 'Pulses', location: 'Mumbai', image: 'https://picsum.photos/seed/p7/600/400' },
-    { id: 8, title: 'Sunflower Seeds', price: 80, category: 'Seeds', location: 'Thane', image: 'https://picsum.photos/seed/p8/600/400' },
-  ];
+  // Products data
+  products: any[] = [];
 
-  constructor(private route: ActivatedRoute) {
-    this.route.queryParams.subscribe(params => {
-      const cat = params['category'];
-      const q = params['q'];
-      if (cat && this.categories.includes(cat)) {
-        this.selectedCategory = cat;
-      } else {
-        this.selectedCategory = 'All';
+  // Pagination state
+  page = 1;
+  limit = 12;
+  total = 0;
+  totalPages = 1;
+
+  loading = true;
+  errorMessage = '';
+  Math = Math; // for template usage
+
+  constructor(private productSvc: ProductService) {}
+
+  ngOnInit() {
+    this.loadCategories();
+    this.loadProducts();
+  }
+
+  // --------------------------
+  // LOAD CATEGORIES FROM BACKEND
+  // --------------------------
+  loadCategories() {
+    this.productSvc.getPublicProducts().subscribe({
+      next: (res) => {
+        const allProducts = res.products ?? [];
+        const set = new Set(allProducts.map(p => p.category?.name).filter(Boolean));
+        this.categories = ['All', ...Array.from(set)];
+      },
+      error: () => {
+        console.warn("Could not load categories (public API)");
       }
-
-      // set searchText from q param, if present
-      this.searchText = q || '';
     });
   }
 
-  get filteredProducts() {
-    let filtered = this.products.filter(p =>
-      p.title.toLowerCase().includes(this.searchText.toLowerCase())
-    );
+  // --------------------------
+  // LOAD PRODUCTS WITH PAGINATION
+  // --------------------------
+  loadProducts() {
+    this.loading = true;
+    this.errorMessage = '';
 
-    if (this.selectedCategory && this.selectedCategory !== 'All') {
-      filtered = filtered.filter(p => p.category === this.selectedCategory);
+    const params = {
+      page: this.page,
+      limit: this.limit,
+      q: this.searchText || undefined,
+      category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined,
+      sort: this.sortBy as 'none' | 'low-high' | 'high-low'
+    };
+
+    this.productSvc.getPublicProductsPaginated(params).subscribe({
+      next: (res: any) => {
+        this.products = res.products ?? [];
+        this.total = res.total ?? 0;
+        this.totalPages = res.totalPages ?? 1;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err?.error?.message || 'Failed to load products.';
+      }
+    });
+  }
+
+  // --------------------------
+  // PAGINATION METHODS
+  // --------------------------
+  pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  goToPage(num: number) {
+    if (num < 1 || num > this.totalPages) return;
+    this.page = num;
+    this.loadProducts();
+  }
+
+  nextPage() {
+    if (this.page < this.totalPages) {
+      this.page++;
+      this.loadProducts();
     }
+  }
 
-    if (this.sortBy === 'low-high') {
-      filtered = [...filtered].sort((a, b) => a.price - b.price);
-    } else if (this.sortBy === 'high-low') {
-      filtered = [...filtered].sort((a, b) => b.price - a.price);
+  prevPage() {
+    if (this.page > 1) {
+      this.page--;
+      this.loadProducts();
     }
+  }
 
-    return filtered;
+  // --------------------------
+  // FILTER CHANGE TRIGGER
+  // --------------------------
+  onFilterChanged() {
+    this.page = 1;
+    this.loadProducts();
   }
 }

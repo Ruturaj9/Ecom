@@ -85,18 +85,41 @@ router.post(
   }
 );
 
+
 /**
- * GET PRODUCTS
+ * GET PRODUCTS (PAGINATED)
+ * /admin/products?page=1&limit=10
  */
 router.get('/', requireAdmin(['admin']), async (req, res, next) => {
   try {
-    const products = await Product.find()
-      .sort({ createdAt: -1 })
-      .populate('category')
-      .limit(50)
-      .lean();
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
 
-    res.json({ products });
+    if (page < 1) page = 1;
+    if (limit < 1 || limit > 100) limit = 10;
+
+    const skip = (page - 1) * limit;
+
+    const [products, total] = await Promise.all([
+      Product.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('category')
+        .lean(),
+
+      Product.countDocuments()
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return res.json({
+      products,
+      total,
+      page,
+      totalPages
+    });
+
   } catch (err) {
     next(err);
   }
