@@ -1,38 +1,32 @@
 // src/routes/admin/slider.js
 const express = require('express');
 const { body, param } = require('express-validator');
+
 const Slider = require('../../models/Slider');
 const validateRequest = require('../../middleware/validateRequest');
 const requireAdmin = require('../../middleware/requireAdmin');
 const auditLogger = require('../../middleware/auditLogger');
-
-// ⭐ IMPORTANT — correct import
 const { upload, formatUploadResponse } = require('../../middleware/uploadImages');
 
 const router = express.Router();
 
-/**
- * UPLOAD SLIDER IMAGES
- * POST /admin/slider/upload
- * Returns:
- * {
- *    urls: [
- *      { desktop: "...", mobile: "..." }
- *    ]
- * }
- */
+/* ------------------------------------------------------
+   UPLOAD SLIDER IMAGES
+   POST /admin/slider/upload
+------------------------------------------------------- */
 router.post(
   '/upload',
   requireAdmin(['admin']),
   upload.array('images', 10),
   async (req, res, next) => {
     try {
-      if (!req.files || req.files.length === 0) {
+      const files = Array.isArray(req.files) ? req.files : [];
+
+      if (files.length === 0) {
         return res.status(400).json({ error: 'No images uploaded' });
       }
 
-      // Uses automatic CloudinaryStorage upload + auto desktop/mobile formatter
-      const result = formatUploadResponse(req, req.files);
+      const result = formatUploadResponse(req, files);
 
       await auditLogger({
         req,
@@ -42,22 +36,21 @@ router.post(
         resourceType: 'SliderImages',
         resourceId: null,
         before: null,
-        after: result
+        after: result,
       });
 
-      res.json(result);
-
+      return res.json(result);
     } catch (err) {
-      console.error("SLIDER UPLOAD ERROR:", err);
+      console.error('SLIDER UPLOAD ERROR:', err);
       next(err);
     }
   }
 );
 
-/**
- * CREATE SLIDER ITEMS
- * POST /admin/slider
- */
+/* ------------------------------------------------------
+   CREATE SLIDER ITEMS
+   POST /admin/slider
+------------------------------------------------------- */
 router.post(
   '/',
   requireAdmin(['admin']),
@@ -90,30 +83,29 @@ router.post(
         created.push(saved);
       }
 
-      res.status(201).json({ sliders: created });
-
+      return res.status(201).json({ sliders: created });
     } catch (err) {
       next(err);
     }
   }
 );
 
-/**
- * GET SLIDER LIST
- * GET /admin/slider
- */
+/* ------------------------------------------------------
+   GET SLIDER LIST
+   GET /admin/slider
+------------------------------------------------------- */
 router.get('/', requireAdmin(['admin']), async (req, res, next) => {
   try {
-    const list = await Slider.find().sort({ order: 1 }).lean();
-    res.json({ sliders: list });
+    const sliders = await Slider.find().sort({ order: 1 }).lean();
+    return res.json({ sliders });
   } catch (err) {
     next(err);
   }
 });
 
-/**
- * UPDATE SLIDER
- */
+/* ------------------------------------------------------
+   UPDATE SLIDER
+------------------------------------------------------- */
 router.put(
   '/:id',
   requireAdmin(['admin']),
@@ -127,16 +119,16 @@ router.put(
         { new: true }
       );
 
-      res.json({ slider: updated });
+      return res.json({ slider: updated });
     } catch (err) {
       next(err);
     }
   }
 );
 
-/**
- * DELETE SLIDER
- */
+/* ------------------------------------------------------
+   DELETE SLIDER
+------------------------------------------------------- */
 router.delete(
   '/:id',
   requireAdmin(['admin']),
@@ -145,7 +137,7 @@ router.delete(
   async (req, res, next) => {
     try {
       await Slider.findByIdAndDelete(req.params.id);
-      res.json({ message: 'Deleted' });
+      return res.json({ message: 'Deleted' });
     } catch (err) {
       next(err);
     }

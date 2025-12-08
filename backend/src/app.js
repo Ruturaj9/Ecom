@@ -5,103 +5,157 @@ const cookieParser = require('cookie-parser');
 const csurf = require('csurf');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
+const morgan = require('morgan');
 
+// Routes
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
+const sliderRoutes = require('./routes/slider');
+const contactRoutes = require('./routes/contact');
+const adminProducts = require('./routes/admin/products');
+const adminLogs = require('./routes/admin/logs');
+const adminCategories = require('./routes/admin/categories');
+const adminUpload = require('./routes/admin/upload');
+const adminProductImages = require('./routes/admin/productImages');
+const adminSlider = require('./routes/admin/slider');
+const adminContactMessages = require('./routes/admin/contactMessages');
+
+// Middleware
 const errorHandler = require('./middleware/errorHandler');
-const Product = require("./models/Product");
 const requireAdmin = require('./middleware/requireAdmin');
+
+// Models
+const Product = require('./models/Product');
 
 const app = express();
 
+/* ------------------------------------------------------
+   GLOBAL MIDDLEWARE
+------------------------------------------------------- */
+
+// Security headers
 app.use(helmet());
 
-// Increase request size limit
+// Compression for faster responses
+app.use(compression());
+
+// Request body limits
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
+// Cookies
 app.use(cookieParser());
 
-// CORS for Angular panel
+// Structured request logs (only in dev)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
+
+// CORS for Angular frontend
 app.use(
   cors({
     origin: 'http://localhost:4200',
-    credentials: true
+    credentials: true,
   })
 );
 
+/* ------------------------------------------------------
+   SECURITY: CSRF + RATE LIMITING
+------------------------------------------------------- */
+
 const csrfProtection = csurf({
   cookie: {
-    httpOnly: false,
-    sameSite: "lax"
-  }
+    httpOnly: false, // preserving your logic
+    sameSite: 'lax',
+  },
 });
 
 const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 12,
-  message: { error: "Too many attempts, try later." }
+  message: { error: 'Too many attempts, try later.' },
 });
 
-app.get("/health", (req, res) => {
+/* ------------------------------------------------------
+   HEALTH CHECK
+------------------------------------------------------- */
+
+app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
-// CSRF endpoint
-app.get("/auth/csrf-token", csrfProtection, (req, res) => {
+/* ------------------------------------------------------
+   CSRF TOKEN ENDPOINT
+------------------------------------------------------- */
+
+app.get('/auth/csrf-token', csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
-app.use("/auth", rateLimiter, authRoutes(csrfProtection));
-app.use("/products", productRoutes);
+/* ------------------------------------------------------
+   PUBLIC ROUTES
+------------------------------------------------------- */
 
-// Public API (Homepage Sliders)
-app.use('/sliders', require('./routes/slider'));   // ✅ FIXED
-app.use('/contact', require('./routes/contact'));
+app.use('/auth', rateLimiter, authRoutes(csrfProtection));
+app.use('/products', productRoutes);
+app.use('/sliders', sliderRoutes);
+app.use('/contact', contactRoutes);
 
-// Admin API (Protected)
-app.use('/admin/products', require('./routes/admin/products'));
-app.use('/admin/logs', require('./routes/admin/logs'));
-app.use('/admin/categories', require('./routes/admin/categories'));
-app.use('/admin/upload', require('./routes/admin/upload'));
-app.use('/admin/products/upload', require('./routes/admin/productImages'));
-app.use('/admin/slider', requireAdmin(['admin']), require('./routes/admin/slider'));
-app.use('/admin/contact-messages', require('./routes/admin/contactMessages'));
+/* ------------------------------------------------------
+   ADMIN ROUTES (Protected)
+------------------------------------------------------- */
 
-app.get("/", (req, res) => {
+app.use('/admin/products', adminProducts);
+app.use('/admin/logs', adminLogs);
+app.use('/admin/categories', adminCategories);
+app.use('/admin/upload', adminUpload);
+app.use('/admin/products/upload', adminProductImages);
+app.use('/admin/slider', requireAdmin(['admin']), adminSlider);
+app.use('/admin/contact-messages', adminContactMessages);
+
+/* ------------------------------------------------------
+   TEST ENDPOINTS (Preserved)
+------------------------------------------------------- */
+
+// Root welcome route
+app.get('/', (req, res) => {
   res.json({
-    status: "Backend running",
-    message: "Welcome to Ecom API"
+    status: 'Backend running',
+    message: 'Welcome to Ecom API',
   });
 });
 
-// Example POST for debugging
-app.post("/test-insert-product", async (req, res) => {
+// Debug product insertion
+app.post('/test-insert-product', async (req, res) => {
   try {
     const product = await Product.create({
-      title: "Test Product",
-      description: "Inserted for testing",
-      price: 123
+      title: 'Test Product',
+      description: 'Inserted for testing',
+      price: 123,
     });
 
     res.json({
-      message: "Product inserted successfully",
-      product
+      message: 'Product inserted successfully',
+      product,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Protect admin test route
+// Admin protected test
 app.get('/admin/test', requireAdmin(), (req, res) => {
   res.json({
     message: 'Admin access verified',
-    admin: req.admin
+    admin: req.admin,
   });
 });
 
-// Error Handler
+/* ------------------------------------------------------
+   GLOBAL ERROR HANDLER
+------------------------------------------------------- */
+
 app.use(errorHandler);
 
 module.exports = app;

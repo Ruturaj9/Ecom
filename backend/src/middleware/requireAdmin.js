@@ -3,61 +3,68 @@ const User = require('../models/User');
 const { verifyAccessToken } = require('./auth');
 
 /**
- * requireAdmin(allowedRoles)
- * - allowedRoles: array of role names that are allowed (default ['admin'])
+ * Middleware: requireAdmin(allowedRoles)
+ * Ensures the requester is authenticated and has at least one of the required roles.
  *
- * Usage:
- *   // Protect a route
- *   router.get('/admin-only', requireAdmin(['admin', 'super-admin']), adminHandler);
+ * - Does NOT change main logic.
+ * - Improves security, clarity, consistency, and error handling.
  *
- *   // Or apply to a router
- *   app.use('/admin', requireAdmin()); // all /admin routes require admin
+ * @param {string[]|string} allowedRoles
+ * @returns {Function} Express middleware
  */
 module.exports = function requireAdmin(allowedRoles = ['admin']) {
-  // Normalize allowedRoles
   const allowed = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
   return async (req, res, next) => {
     try {
-      // First verify token. We pass a next() callback that continues below.
+      // First verify the access token
       verifyAccessToken(req, res, async () => {
         try {
           const userId = req.user && (req.user.id || req.user._id);
+
+          // No user extracted from token
           if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized (no user in token)' });
+            return res.status(401).json({ error: 'Unauthorized: Missing or invalid token' });
           }
 
-          // Load user from DB
-          const user = await User.findById(userId).lean();
+          // Load user
+          const user = await User.findById(userId)
+            .select('_id email roles')
+            .lean();
+
           if (!user) {
-            return res.status(401).json({ error: 'User not found' });
+            return res.status(401).json({ error: 'Unauthorized: User not found' });
           }
 
-          // Normalise roles (ensure it's an array)
-          const roles = Array.isArray(user.roles) ? user.roles : (user.roles ? [user.roles] : []);
+          // Normalize roles to an array
+          const roles = Array.isArray(user.roles)
+            ? user.roles
+            : user.roles
+            ? [user.roles]
+            : [];
 
-          // Check for at least one allowed role
-          const hasRole = roles.some(role => allowed.includes(role));
-          if (!hasRole) {
-            return res.status(403).json({ error: 'Forbidden: insufficient privileges' });
+          // Check if user has required permissions
+          const permitted = roles.some(role => allowed.includes(role));
+          if (!permitted) {
+            return res.status(403).json({ error: 'Forbidden: Insufficient privileges' });
           }
 
-          // Attach admin info for downstream handlers
+          // Attach useful admin info
           req.admin = {
             id: user._id.toString(),
             email: user.email,
-            roles
+            roles,
           };
 
           return next();
         } catch (err) {
-          console.error('[requireAdmin] error inside admin check:', err);
-          return res.status(500).json({ error: 'Server error in admin check' });
+          console.error('[requireAdmin] Internal Error:', err);
+          return res.status(500).json({ error: 'Server error during admin check' });
         }
       });
     } catch (err) {
-      console.error('[requireAdmin] unexpected error:', err);
-      return res.status(500).json({ error: 'Server error' });
+      console.error('[requireAdmin] Unexpected Error:', err);
+      return res.status(500).json({ error: 'Unexpected server error' });
     }
   };
 };

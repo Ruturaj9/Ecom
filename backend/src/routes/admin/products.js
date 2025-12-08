@@ -1,35 +1,39 @@
 // src/routes/admin/products.js
 const express = require('express');
 const { body, param } = require('express-validator');
+
 const Product = require('../../models/Product');
 const validateRequest = require('../../middleware/validateRequest');
 const requireAdmin = require('../../middleware/requireAdmin');
 const auditLogger = require('../../middleware/auditLogger');
-
 const { upload } = require('../../middleware/uploadImages');
 
 const router = express.Router();
 
-/**
- * Extract Cloudinary public ID
- */
+/* ------------------------------------------------------
+   Helpers
+------------------------------------------------------- */
+
+/** Extract Cloudinary public ID */
 function extractPublicId(url) {
   try {
-    const regex = /\/upload\/(?:[^\/]+\/)*([^\/]+\/)?v\d+\/(.+)\.\w+$/;
+    if (!url || typeof url !== 'string') return null;
+
+    const regex = /\/upload\/(?:[^/]+\/)*([^/]+\/)?v\d+\/(.+)\.\w+$/;
     const match = url.match(regex);
+
     if (!match) return null;
 
-    const folder = match[1] || "";
+    const folder = match[1] || '';
     const file = match[2];
+
     return folder + file;
   } catch {
     return null;
   }
 }
 
-/**
- * Delete Cloudinary images
- */
+/** Delete Cloudinary images safely */
 async function deleteCloudinaryUrls(urls = []) {
   if (!Array.isArray(urls) || urls.length === 0) return;
 
@@ -41,18 +45,18 @@ async function deleteCloudinaryUrls(urls = []) {
 
     try {
       await cloudinary.uploader.destroy(publicId, { invalidate: true });
-      console.log("🗑 Deleted:", publicId);
+      console.log('🗑 Deleted:', publicId);
     } catch (err) {
-      console.error("⚠ Delete failed:", publicId, err.message);
+      console.error('⚠ Failed delete:', publicId, err.message);
     }
   });
 
   await Promise.allSettled(tasks);
 }
 
-/**
- * CREATE PRODUCT
- */
+/* ------------------------------------------------------
+   CREATE PRODUCT
+------------------------------------------------------- */
 router.post(
   '/',
   requireAdmin(['admin']),
@@ -61,7 +65,7 @@ router.post(
     body('price').isNumeric(),
     body('description').optional().isString(),
     body('images').optional().isArray(),
-    body('category').optional().isMongoId()
+    body('category').optional().isMongoId(),
   ],
   validateRequest,
   async (req, res, next) => {
@@ -74,26 +78,23 @@ router.post(
         price,
         images,
         category,
-        createdBy: req.admin.id
+        createdBy: req.admin.id,
       });
 
       return res.status(201).json({ product });
-
     } catch (err) {
       next(err);
     }
   }
 );
 
-
-/**
- * GET PRODUCTS (PAGINATED)
- * /admin/products?page=1&limit=10
- */
+/* ------------------------------------------------------
+   GET PRODUCTS (PAGINATED)
+------------------------------------------------------- */
 router.get('/', requireAdmin(['admin']), async (req, res, next) => {
   try {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    let page = parseInt(req.query.page, 10) || 1;
+    let limit = parseInt(req.query.limit, 10) || 10;
 
     if (page < 1) page = 1;
     if (limit < 1 || limit > 100) limit = 10;
@@ -108,7 +109,7 @@ router.get('/', requireAdmin(['admin']), async (req, res, next) => {
         .populate('category')
         .lean(),
 
-      Product.countDocuments()
+      Product.countDocuments(),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -117,17 +118,16 @@ router.get('/', requireAdmin(['admin']), async (req, res, next) => {
       products,
       total,
       page,
-      totalPages
+      totalPages,
     });
-
   } catch (err) {
     next(err);
   }
 });
 
-/**
- * UPDATE PRODUCT
- */
+/* ------------------------------------------------------
+   UPDATE PRODUCT
+------------------------------------------------------- */
 router.put(
   '/:id',
   requireAdmin(['admin']),
@@ -137,50 +137,59 @@ router.put(
     body('title').optional().isString(),
     body('price').optional().isNumeric(),
     body('description').optional().isString(),
-    body('category').optional().isMongoId()
+    body('category').optional().isMongoId(),
   ],
   validateRequest,
   async (req, res, next) => {
     try {
       const id = req.params.id;
-
       const before = await Product.findById(id).lean();
-      if (!before) return res.status(404).json({ error: "Product not found" });
 
-      const existingImages = req.body.existingImages
-        ? JSON.parse(req.body.existingImages)
-        : before.images;
+      if (!before) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
 
-      const newImages = req.files.map(f => f.path);
+      // Parse existing images safely
+      let existingImages = before.images;
+      if (req.body.existingImages) {
+        try {
+          existingImages = JSON.parse(req.body.existingImages);
+        } catch {
+          existingImages = before.images;
+        }
+      }
+
+      // Multer provides req.files as an array (safe fallback)
+      const newImages = Array.isArray(req.files) ? req.files.map((f) => f.path) : [];
 
       const finalImages = [...existingImages, ...newImages];
 
       const updated = await Product.findByIdAndUpdate(
         id,
         {
-          title: req.body.title,
-          price: req.body.price,
-          description: req.body.description,
+          title: req.body.title ?? before.title,
+          price: req.body.price ?? before.price,
+          description: req.body.description ?? before.description,
           images: finalImages,
-          category: req.body.category || before.category
+          category: req.body.category || before.category,
         },
         { new: true }
       );
 
-      const removed = before.images.filter(i => !finalImages.includes(i));
+      // Delete removed images
+      const removed = before.images.filter((img) => !finalImages.includes(img));
       await deleteCloudinaryUrls(removed);
 
       return res.json({ product: updated });
-
     } catch (err) {
       next(err);
     }
   }
 );
 
-/**
- * DELETE PRODUCT
- */
+/* ------------------------------------------------------
+   DELETE PRODUCT
+------------------------------------------------------- */
 router.delete(
   '/:id',
   requireAdmin(['admin']),
@@ -191,14 +200,15 @@ router.delete(
       const id = req.params.id;
 
       const before = await Product.findById(id).lean();
-      if (!before) return res.status(404).json({ error: "Product not found" });
+      if (!before) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
 
       await Product.findByIdAndDelete(id);
 
       await deleteCloudinaryUrls(before.images);
 
-      return res.json({ message: "Product deleted" });
-
+      return res.json({ message: 'Product deleted' });
     } catch (err) {
       next(err);
     }

@@ -4,14 +4,20 @@ const Slider = require('../models/Slider');
 
 const router = express.Router();
 
-// GET /sliders (public)
+/**
+ * GET /sliders
+ * Public endpoint – returns active sliders sorted by order.
+ *
+ * - Main logic preserved exactly.
+ * - Added consistent structure & error-safe response handling.
+ */
 router.get('/', async (req, res, next) => {
   try {
     const sliders = await Slider.find({ active: true })
       .sort({ order: 1 })
       .lean();
 
-    res.json({ sliders });
+    return res.json({ sliders });
   } catch (err) {
     next(err);
   }

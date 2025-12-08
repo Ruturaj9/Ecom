@@ -1,64 +1,90 @@
 // src/app/pages/products/products.component.ts
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { ProductService } from '../../services/product.service';
 
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { debounceTime, Subject } from 'rxjs';
+
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProductCardComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ProductCardComponent,
+    ScrollingModule
+  ],
   templateUrl: './products.component.html'
 })
 export class ProductsComponent implements OnInit {
 
-  // Filters
+  // ----------------------------
+  // FILTER STATE
+  // ----------------------------
   searchText = '';
   selectedCategory: string = 'All';
   sortBy: 'none' | 'low-high' | 'high-low' = 'none';
 
   categories: string[] = ['All'];
-
-  // Products data
   products: any[] = [];
 
-  // Pagination state
+  // ----------------------------
+  // PAGINATION STATE
+  // ----------------------------
   page = 1;
-  limit = 12;
+  limit = 24;     // ideal for virtual scroll + pagination
   total = 0;
   totalPages = 1;
 
+  // ----------------------------
+  // SYSTEM STATES
+  // ----------------------------
   loading = true;
   errorMessage = '';
-  Math = Math; // for template usage
+  Math = Math;
+
+  // Debounce search & filter
+  private filterTrigger = new Subject<void>();
 
   constructor(private productSvc: ProductService) {}
 
   ngOnInit() {
     this.loadCategories();
     this.loadProducts();
+
+    // Debounce 300ms for search + category change
+    this.filterTrigger
+      .pipe(debounceTime(300))
+      .subscribe(() => {
+        this.page = 1;
+        this.loadProducts();
+      });
   }
 
-  // --------------------------
-  // LOAD CATEGORIES FROM BACKEND
-  // --------------------------
+  // ------------------------------------------------
+  // LOAD CATEGORIES (FROM /products/categories)
+  // ------------------------------------------------
   loadCategories() {
-    this.productSvc.getPublicProducts().subscribe({
-      next: (res) => {
-        const allProducts = res.products ?? [];
-        const set = new Set(allProducts.map(p => p.category?.name).filter(Boolean));
-        this.categories = ['All', ...Array.from(set)];
+    this.productSvc.getPublicCategories().subscribe({
+      next: (res: { categories: any[] }) => {
+        const list = res?.categories || [];
+        this.categories = ['All', ...list.map(c => c.name)];
       },
-      error: () => {
-        console.warn("Could not load categories (public API)");
+      error: (err) => {
+        console.warn('Failed to load categories', err?.error || err);
       }
     });
   }
 
-  // --------------------------
-  // LOAD PRODUCTS WITH PAGINATION
-  // --------------------------
+  // ------------------------------------------------
+  // LOAD PRODUCTS (SERVER-SIDE PAGINATION)
+  // ------------------------------------------------
   loadProducts() {
     this.loading = true;
     this.errorMessage = '';
@@ -68,14 +94,14 @@ export class ProductsComponent implements OnInit {
       limit: this.limit,
       q: this.searchText || undefined,
       category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined,
-      sort: this.sortBy as 'none' | 'low-high' | 'high-low'
+      sort: this.sortBy
     };
 
     this.productSvc.getPublicProductsPaginated(params).subscribe({
       next: (res: any) => {
-        this.products = res.products ?? [];
-        this.total = res.total ?? 0;
-        this.totalPages = res.totalPages ?? 1;
+        this.products = res.products || [];
+        this.total = res.total || 0;
+        this.totalPages = res.totalPages || 1;
         this.loading = false;
       },
       error: (err) => {
@@ -85,17 +111,25 @@ export class ProductsComponent implements OnInit {
     });
   }
 
-  // --------------------------
-  // PAGINATION METHODS
-  // --------------------------
+  // ------------------------------------------------
+  // FILTER CHANGE → Debounced refresh
+  // ------------------------------------------------
+  onFilterChanged() {
+    this.filterTrigger.next();
+  }
+
+  // ------------------------------------------------
+  // PAGINATION HELPERS
+  // ------------------------------------------------
   pages(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
-  goToPage(num: number) {
-    if (num < 1 || num > this.totalPages) return;
-    this.page = num;
-    this.loadProducts();
+  goToPage(n: number) {
+    if (n >= 1 && n <= this.totalPages) {
+      this.page = n;
+      this.loadProducts();
+    }
   }
 
   nextPage() {
@@ -110,13 +144,5 @@ export class ProductsComponent implements OnInit {
       this.page--;
       this.loadProducts();
     }
-  }
-
-  // --------------------------
-  // FILTER CHANGE TRIGGER
-  // --------------------------
-  onFilterChanged() {
-    this.page = 1;
-    this.loadProducts();
   }
 }

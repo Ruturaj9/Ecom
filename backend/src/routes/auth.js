@@ -4,31 +4,28 @@ const { body } = require('express-validator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+
 const User = require('../models/User');
 const validateRequest = require('../middleware/validateRequest');
-const { verifyAccessToken } = require('../middleware/auth'); // ✅ IMPORTANT FIX
+const { verifyAccessToken } = require('../middleware/auth');
 
 const ACCESS_EXP = process.env.ACCESS_TOKEN_EXPIRES || '15m';
 const REFRESH_EXP = process.env.REFRESH_TOKEN_EXPIRES || '7d';
 
-// -----------------------------------------------------
-// TOKEN HELPERS
-// -----------------------------------------------------
-const signAccessToken = (user) => {
-  return jwt.sign(
+/* ------------------------------------------------------
+   TOKEN HELPERS (main logic preserved)
+------------------------------------------------------- */
+const signAccessToken = (user) =>
+  jwt.sign(
     { sub: user._id.toString(), roles: user.roles || [] },
     process.env.JWT_ACCESS_SECRET,
     { expiresIn: ACCESS_EXP }
   );
-};
 
-const signRefreshToken = (user) => {
-  return jwt.sign(
-    { sub: user._id.toString() },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: REFRESH_EXP }
-  );
-};
+const signRefreshToken = (user) =>
+  jwt.sign({ sub: user._id.toString() }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: REFRESH_EXP,
+  });
 
 const hashToken = (token) =>
   crypto.createHash('sha256').update(token).digest('hex');
@@ -41,38 +38,53 @@ function msToMs(str) {
   return num;
 }
 
-// -----------------------------------------------------
-
+/* ------------------------------------------------------
+   AUTH ROUTES
+------------------------------------------------------- */
 module.exports = (csrfProtection) => {
   const router = express.Router();
 
-  // ---------------- REGISTER ----------------
+  /* ------------------------------------------------------
+     REGISTER
+  ------------------------------------------------------- */
   router.post(
     '/register',
     [
       body('email').isEmail().withMessage('Valid email required'),
       body('password').isLength({ min: 8 }).withMessage('Password min length 8'),
-      body('name').optional().isString()
+      body('name').optional().isString(),
     ],
     validateRequest,
     async (req, res, next) => {
       try {
         const { email, password, name } = req.body;
+
         const existing = await User.findOne({ email });
-        if (existing) return res.status(409).json({ error: 'Email already in use' });
+        if (existing) {
+          return res.status(409).json({ error: 'Email already in use' });
+        }
 
         const passwordHash = await bcrypt.hash(password, 12);
-        const user = new User({ email, passwordHash, name, roles: ['user'] });
+
+        const user = new User({
+          email,
+          passwordHash,
+          name,
+          roles: ['user'],
+        });
 
         await user.save();
-        res.status(201).json({ message: 'User created' });
+
+        return res.status(201).json({ message: 'User created' });
       } catch (err) {
         next(err);
       }
     }
   );
 
-  // ---------------- LOGIN ----------------
+  /* ------------------------------------------------------
+     LOGIN
+  ------------------------------------------------------- */
   router.post(
     '/login',
     [body('email').isEmail(), body('password').isString()],
@@ -83,11 +95,15 @@ module.exports = (csrfProtection) => {
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });
-        if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!user) {
+          return res.status(401).json({ error: 'Invalid credentials' });
+        }
 
+        // Account lock check
         if (user.isLocked()) {
           return res.status(423).json({
-            error: 'Account locked due to multiple failed attempts. Try again later.'
+            error:
+              'Account locked due to multiple failed attempts. Try again later.',
           });
         }
 
@@ -97,9 +113,9 @@ module.exports = (csrfProtection) => {
           return res.status(401).json({ error: 'Invalid credentials' });
         }
 
+        // Reset failed login attempts
         user.failedLoginAttempts = 0;
         user.lockUntil = null;
-        await user.save();
 
         const accessToken = signAccessToken(user);
         const refreshToken = signRefreshToken(user);
@@ -109,16 +125,18 @@ module.exports = (csrfProtection) => {
 
         user.refreshTokens.push({
           tokenHash: refreshHash,
-          expiresAt: refreshExpiry
+          expiresAt: refreshExpiry,
         });
+
         await user.save();
 
+        // Cookies
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
           maxAge: msToMs(REFRESH_EXP),
-          domain: process.env.COOKIE_DOMAIN || undefined
+          domain: process.env.COOKIE_DOMAIN || undefined,
         });
 
         res.cookie('accessToken', accessToken, {
@@ -126,7 +144,7 @@ module.exports = (csrfProtection) => {
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
           maxAge: msToMs(ACCESS_EXP),
-          domain: process.env.COOKIE_DOMAIN || undefined
+          domain: process.env.COOKIE_DOMAIN || undefined,
         });
 
         return res.json({ message: 'Logged in' });
@@ -136,26 +154,35 @@ module.exports = (csrfProtection) => {
     }
   );
 
-  // ---------------- GET AUTH USER (NEW) ----------------
+  /* ------------------------------------------------------
+     GET AUTH USER
+  ------------------------------------------------------- */
   router.get('/me', verifyAccessToken, async (req, res, next) => {
     try {
       const user = await User.findById(req.user.id)
         .select('-passwordHash -refreshTokens')
         .lean();
 
-      if (!user) return res.status(404).json({ error: 'User not found' });
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
 
-      res.json({ user });
+      return res.json({ user });
     } catch (err) {
       next(err);
     }
   });
 
-  // ---------------- REFRESH TOKEN ----------------
+  /* ------------------------------------------------------
+     REFRESH TOKEN
+  ------------------------------------------------------- */
   router.post('/refresh', async (req, res, next) => {
     try {
       const token = req.cookies.refreshToken;
-      if (!token) return res.status(401).json({ error: 'No refresh token' });
+
+      if (!token) {
+        return res.status(401).json({ error: 'No refresh token' });
+      }
 
       let payload;
       try {
@@ -165,20 +192,33 @@ module.exports = (csrfProtection) => {
       }
 
       const user = await User.findById(payload.sub);
-      if (!user) return res.status(401).json({ error: 'User not found' });
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
 
       const tokenHash = hashToken(token);
+
       const match = user.refreshTokens.find(
         (rt) => rt.tokenHash === tokenHash && rt.expiresAt > new Date()
       );
-      if (!match) return res.status(401).json({ error: 'Refresh token expired/revoked' });
 
+      if (!match) {
+        return res.status(401).json({ error: 'Refresh token expired/revoked' });
+      }
+
+      // Rotate refresh token
       const newRefreshToken = signRefreshToken(user);
       const newHash = hashToken(newRefreshToken);
       const newExpiry = new Date(Date.now() + msToMs(REFRESH_EXP));
 
-      user.refreshTokens = user.refreshTokens.filter(rt => rt.tokenHash !== tokenHash);
-      user.refreshTokens.push({ tokenHash: newHash, expiresAt: newExpiry });
+      user.refreshTokens = user.refreshTokens.filter(
+        (rt) => rt.tokenHash !== tokenHash
+      );
+      user.refreshTokens.push({
+        tokenHash: newHash,
+        expiresAt: newExpiry,
+      });
+
       await user.save();
 
       res.cookie('refreshToken', newRefreshToken, {
@@ -186,7 +226,7 @@ module.exports = (csrfProtection) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: msToMs(REFRESH_EXP),
-        domain: process.env.COOKIE_DOMAIN || undefined
+        domain: process.env.COOKIE_DOMAIN || undefined,
       });
 
       const newAccess = signAccessToken(user);
@@ -196,16 +236,18 @@ module.exports = (csrfProtection) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: msToMs(ACCESS_EXP),
-        domain: process.env.COOKIE_DOMAIN || undefined
+        domain: process.env.COOKIE_DOMAIN || undefined,
       });
 
-      res.json({ accessToken: newAccess });
+      return res.json({ accessToken: newAccess });
     } catch (err) {
       next(err);
     }
   });
 
-  // ---------------- LOGOUT ----------------
+  /* ------------------------------------------------------
+     LOGOUT
+  ------------------------------------------------------- */
   router.post('/logout', async (req, res, next) => {
     try {
       const token = req.cookies.refreshToken;
@@ -216,28 +258,31 @@ module.exports = (csrfProtection) => {
           const user = await User.findById(payload.sub);
 
           if (user) {
-            const tokenHash = hashToken(token);
-            user.refreshTokens = user.refreshTokens.filter(rt => rt.tokenHash !== tokenHash);
+            const hash = hashToken(token);
+            user.refreshTokens = user.refreshTokens.filter(
+              (rt) => rt.tokenHash !== hash
+            );
             await user.save();
           }
         } catch (_) {}
       }
 
+      // Clear cookies
       res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        domain: process.env.COOKIE_DOMAIN || undefined
+        domain: process.env.COOKIE_DOMAIN || undefined,
       });
 
       res.clearCookie('accessToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        domain: process.env.COOKIE_DOMAIN || undefined
+        domain: process.env.COOKIE_DOMAIN || undefined,
       });
 
-      res.json({ message: 'Logged out' });
+      return res.json({ message: 'Logged out' });
     } catch (err) {
       next(err);
     }
