@@ -7,7 +7,7 @@ import { finalize } from 'rxjs/operators';
 
 interface PreviewImage {
   file?: File;
-  url: string;       // full uploaded URL or external URL
+  url: string;
   uploading?: boolean;
   uploaded?: boolean;
 }
@@ -23,14 +23,15 @@ interface Category {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule],
   templateUrl: './product-uploader.component.html',
+  styleUrls: ['./product-uploader.component.css']
 })
 export class ProductUploaderComponent implements OnInit {
+
   form: FormGroup;
   previews: PreviewImage[] = [];
   uploading = false;
   message = '';
 
-  // Categories
   categories: Category[] = [];
   selectedCategoryId: string | null = null;
   showNewCategory = false;
@@ -43,10 +44,24 @@ export class ProductUploaderComponent implements OnInit {
     private productSvc: ProductService,
     private cdr: ChangeDetectorRef
   ) {
+
+    /* ---------------------------------
+     *     STRONG VALIDATION ADDED
+     * --------------------------------- */
     this.form = this.fb.group({
-      title: ['', Validators.required],
-      price: [null, Validators.required],
-      description: [''],
+      title: ['', [Validators.required, Validators.minLength(2)]],
+
+      price: [
+        null,
+        [
+          Validators.required,
+          Validators.pattern(/^\d+(\.\d{1,2})?$/), // only valid numbers
+          Validators.min(1),                         // cannot be 0 or negative
+          Validators.max(10000000)                   // max limit
+        ]
+      ],
+
+      description: ['', [Validators.minLength(5), Validators.maxLength(5000)]],
     });
   }
 
@@ -54,7 +69,13 @@ export class ProductUploaderComponent implements OnInit {
     this.loadCategories();
   }
 
-  // ---------- Getters ----------
+  /* --------------------------------------------
+   *              FORM GETTERS
+   * -------------------------------------------- */
+  get title() { return this.form.get('title'); }
+  get price() { return this.form.get('price'); }
+  get description() { return this.form.get('description'); }
+
   get hasPendingUploads(): boolean {
     return this.previews.some(p => p.file || p.uploading);
   }
@@ -67,17 +88,16 @@ export class ProductUploaderComponent implements OnInit {
     return this.previews.length === 0;
   }
 
-  // ---------- Category APIs (uses ProductService) ----------
+  /* --------------------------------------------
+   *            CATEGORY OPERATIONS
+   * -------------------------------------------- */
   loadCategories(): void {
     this.productSvc.getCategories().subscribe({
       next: (res) => {
         this.categories = res.categories || [];
         this.cdr.markForCheck();
       },
-      error: (err) => {
-        // Don't show a blocking error; admin might not be logged in.
-        console.warn('Could not load categories', err?.message || err);
-      }
+      error: () => {}
     });
   }
 
@@ -108,36 +128,25 @@ export class ProductUploaderComponent implements OnInit {
       .subscribe({
         next: (res) => {
           if (res?.category) {
-            // add to list and select
             this.categories = [res.category, ...this.categories];
             this.selectedCategoryId = res.category._id;
+
             this.showNewCategory = false;
             this.newCategoryName = '';
             this.newCategoryDescription = '';
-            this.message = 'Category created and selected.';
-          } else {
-            this.message = 'Category created but server response was unexpected.';
+
+            this.message = 'Category created successfully.';
           }
         },
         error: (err) => {
-          // handle common cases
-          if (err?.status === 401 || err?.status === 403) {
-            this.message = 'You must be logged in as admin to create categories. Please login.';
-          } else if (err?.status === 409) {
-            this.message = 'That category already exists.';
-          } else if (err?.error?.error) {
-            this.message = err.error.error;
-          } else if (err?.error?.message) {
-            this.message = err.error.message;
-          } else {
-            this.message = 'Failed to create category. Check network or server logs.';
-          }
-          console.error('Create category failed', err);
+          this.message = err?.error?.message || 'Failed to create category';
         }
       });
   }
 
-  // ---------- File Selection ----------
+  /* --------------------------------------------
+   *               IMAGE PREVIEW
+   * -------------------------------------------- */
   onFilesSelected(ev: Event): void {
     const input = ev.target as HTMLInputElement | null;
     if (!input?.files) return;
@@ -167,7 +176,6 @@ export class ProductUploaderComponent implements OnInit {
     }
   }
 
-  // ---------- Drag & Drop ----------
   drop(event: CdkDragDrop<PreviewImage[]>): void {
     const arr = [...this.previews];
     moveItemInArray(arr, event.previousIndex, event.currentIndex);
@@ -182,7 +190,9 @@ export class ProductUploaderComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  // ---------- Upload to Server ----------
+  /* --------------------------------------------
+   *           IMAGE UPLOAD TO SERVER
+   * -------------------------------------------- */
   uploadToServer(): void {
     const files = this.previews.filter(p => p.file).map(p => p.file!);
 
@@ -192,6 +202,7 @@ export class ProductUploaderComponent implements OnInit {
     }
 
     this.uploading = true;
+
     this.previews = this.previews.map(p =>
       p.file ? { ...p, uploading: true } : p
     );
@@ -205,8 +216,6 @@ export class ProductUploaderComponent implements OnInit {
         next: (res: any) => {
           if (!res?.urls?.length) {
             this.message = 'Server did not return uploaded image URLs.';
-            this.previews = this.previews.map(p => ({ ...p, uploading: false }));
-            this.cdr.markForCheck();
             return;
           }
 
@@ -215,10 +224,8 @@ export class ProductUploaderComponent implements OnInit {
           this.previews = this.previews.map(p => {
             if (p.file) {
               const uploadedUrl = res.urls[idx++] || null;
-              if (!uploadedUrl) return { ...p, uploading: false };
-
               return {
-                url: uploadedUrl,
+                url: uploadedUrl || '',
                 uploaded: true,
                 uploading: false
               };
@@ -227,21 +234,18 @@ export class ProductUploaderComponent implements OnInit {
           });
 
           this.message = 'Upload complete.';
-          this.cdr.markForCheck();
         },
-        error: (err) => {
-          this.message = err?.error?.message || 'Upload failed';
-          this.previews = this.previews.map(p => ({ ...p, uploading: false }));
-          this.cdr.detectChanges();
-        }
+        error: () => this.message = 'Upload failed',
       });
   }
 
-  // ---------- Create Product ----------
+  /* --------------------------------------------
+   *                 CREATE PRODUCT
+   * -------------------------------------------- */
   createProduct(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.message = 'Please fill all required fields.';
+      this.message = 'Please fix the highlighted fields.';
       return;
     }
 
@@ -278,13 +282,14 @@ export class ProductUploaderComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        const msg = err?.error?.error || err?.error?.message || 'Failed to create product';
-        this.message = msg;
+        this.message = err?.error?.message || 'Failed to create product';
       }
     });
   }
 
-  // ---------- Add URL Manually ----------
+  /* --------------------------------------------
+   *          Add URL As External Image
+   * -------------------------------------------- */
   addExternalUrl(url: string): void {
     const trimmed = url.trim();
     if (!trimmed) return;

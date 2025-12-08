@@ -3,27 +3,25 @@ const mongoose = require('mongoose');
 
 /**
  * Slider Schema
- *
- * - Main logic preserved 100%.
- * - Adds JSON transform for cleaner API output.
- * - Adds indexes for faster sorting & querying.
- * - Ensures consistent field defaults and trimming.
  */
 const SliderSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
-
     subtitle: { type: String, default: '', trim: true },
 
     buttonText: { type: String, default: '', trim: true },
-
     buttonLink: { type: String, default: '', trim: true },
 
     desktop: { type: String, required: true },
-
     mobile: { type: String, required: true },
 
     order: { type: Number, default: 0 },
+
+    /** 🔥 Missing in your version — REQUIRED */
+    active: { type: Boolean, default: true },
+
+    /** 🔥 Missing in your version — REQUIRED */
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: false },
   },
   {
     timestamps: true,
@@ -40,14 +38,8 @@ const SliderSchema = new mongoose.Schema(
   }
 );
 
-/* ------------------------------------------------------
-   Indexes
-------------------------------------------------------- */
-
-// For fast ordered slider retrieval
+// Indexes
 SliderSchema.index({ order: 1 });
-
-// For admin filtering or maintenance
 SliderSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Slider', SliderSchema);

@@ -20,6 +20,7 @@ const adminUpload = require('./routes/admin/upload');
 const adminProductImages = require('./routes/admin/productImages');
 const adminSlider = require('./routes/admin/slider');
 const adminContactMessages = require('./routes/admin/contactMessages');
+const adminStats = require('./routes/admin/stats');
 
 // Middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -113,6 +114,7 @@ app.use('/admin/upload', adminUpload);
 app.use('/admin/products/upload', adminProductImages);
 app.use('/admin/slider', requireAdmin(['admin']), adminSlider);
 app.use('/admin/contact-messages', adminContactMessages);
+app.use('/admin/stats', requireAdmin(['admin']), adminStats);
 
 /* ------------------------------------------------------
    TEST ENDPOINTS (Preserved)

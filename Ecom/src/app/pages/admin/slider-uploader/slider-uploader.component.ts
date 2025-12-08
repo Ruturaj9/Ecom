@@ -1,4 +1,3 @@
-// src/app/pages/admin/slider-uploader/slider-uploader.component.ts
 import { Component, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -40,7 +39,6 @@ export class SliderUploaderComponent {
     private cdr: ChangeDetectorRef
   ) {}
 
-  /** pick correct preview image */
   getImage(p: SlidePreview): string {
     if (!p.url) return p.tempPreview || '';
     return p.url.desktop;
@@ -57,6 +55,7 @@ export class SliderUploaderComponent {
   onFilesSelected(ev: Event) {
     const input = ev.target as HTMLInputElement;
     if (!input.files) return;
+
     const files = Array.from(input.files);
     input.value = '';
     this.addFiles(files);
@@ -80,6 +79,7 @@ export class SliderUploaderComponent {
 
   uploadToServer() {
     const files = this.previews.filter(p => p.file).map(p => p.file!) as File[];
+
     if (files.length === 0) {
       this.message = 'No new images to upload.';
       return;
@@ -143,6 +143,7 @@ export class SliderUploaderComponent {
   removePreview(i: number) {
     const p = this.previews[i];
     if (p.tempPreview) URL.revokeObjectURL(p.tempPreview);
+
     this.previews.splice(i, 1);
     this.cdr.markForCheck();
   }
@@ -152,7 +153,6 @@ export class SliderUploaderComponent {
     this.cdr.markForCheck();
   }
 
-  /** SAVE to backend */
   saveSlider() {
     if (this.disableSaveButton()) return;
 

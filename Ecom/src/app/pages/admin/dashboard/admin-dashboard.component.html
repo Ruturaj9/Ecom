@@ -1,95 +1,136 @@
-<h1 class="text-3xl font-semibold mb-8 text-gray-800">
-  Admin Dashboard
-</h1>
+<!-- Page title -->
+<div class="mb-6">
+  <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+  <p class="text-sm text-gray-500 mt-1">Overview of key metrics and recent system activity.</p>
+</div>
 
-<!-- =====================
-     STAT CARDS
-====================== -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-
-  <!-- Products -->
-  <a routerLink="/admin/products"
-     class="p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition cursor-pointer">
-
-    <div class="text-gray-500 text-sm">Total Products</div>
-    <div class="text-3xl font-bold text-gray-900 mt-1">{{ stats.products }}</div>
+<!-- Stats row -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+  <a routerLink="/admin/products" class="stat-card">
+    <div class="text-sm text-gray-500">Total Products</div>
+    <div class="text-3xl font-semibold text-gray-900 mt-1">{{ stats().products }}</div>
   </a>
 
-  <!-- Sliders -->
-  <a routerLink="/admin/sliders"
-     class="p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition cursor-pointer">
-
-    <div class="text-gray-500 text-sm">Total Sliders</div>
-    <div class="text-3xl font-bold text-gray-900 mt-1">{{ stats.sliders }}</div>
+  <a routerLink="/admin/sliders" class="stat-card">
+    <div class="text-sm text-gray-500">Total Sliders</div>
+    <div class="text-3xl font-semibold text-gray-900 mt-1">{{ stats().sliders }}</div>
   </a>
 
-  <!-- Users -->
-  <div
-     class="p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition cursor-pointer">
-
-    <div class="text-gray-500 text-sm">Total Users</div>
-    <div class="text-3xl font-bold text-gray-900 mt-1">{{ stats.users }}</div>
+  <div class="stat-card">
+    <div class="text-sm text-gray-500">Total Users</div>
+    <div class="text-3xl font-semibold text-gray-900 mt-1">{{ stats().users }}</div>
   </div>
 </div>
 
+<!-- Quick actions (compact, professional) -->
+<section class="mb-10">
+  <h2 class="text-lg font-semibold text-gray-800 mb-3">Quick Actions</h2>
 
-<!-- =====================
-     QUICK LINKS
-====================== -->
-<h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <a routerLink="/admin/upload" class="action-card">
+      <div class="action-left">
+        <div class="action-title">Upload Product</div>
+        <div class="action-sub">Add new product data to the catalog</div>
+      </div>
+      <div class="action-right">➜</div>
+    </a>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+    <a routerLink="/admin/slider-upload" class="action-card">
+      <div class="action-left">
+        <div class="action-title">Upload Slider</div>
+        <div class="action-sub">Add/replace homepage slider images</div>
+      </div>
+      <div class="action-right">➜</div>
+    </a>
 
-  <!-- Upload Product -->
-  <a routerLink="/admin/upload"
-     class="p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer">
-    <h3 class="text-lg font-semibold text-gray-900">Upload Product</h3>
-    <p class="text-gray-500 mt-1">Add new products to your store</p>
-  </a>
-
-  <!-- Upload Slider -->
-  <a routerLink="/admin/slider-upload"
-     class="p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer">
-    <h3 class="text-lg font-semibold text-gray-900">Upload Slider</h3>
-    <p class="text-gray-500 mt-1">Add images to homepage slider</p>
-  </a>
-
-  <!-- View Logs -->
-  <a routerLink="/admin/logs"
-     class="p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer">
-    <h3 class="text-lg font-semibold text-gray-900">Audit Logs</h3>
-    <p class="text-gray-500 mt-1">View system activity</p>
-  </a>
-
-</div>
-
-
-<!-- =====================
-     RECENT ACTIVITY (AUDIT LOGS)
-====================== -->
-<h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
-
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-
-  <div *ngIf="logs.length === 0" class="text-gray-500 text-sm">
-    No recent activities found.
+    <a routerLink="/admin/logs" class="action-card">
+      <div class="action-left">
+        <div class="action-title">Audit Logs</div>
+        <div class="action-sub">View full system activity & history</div>
+      </div>
+      <div class="action-right">➜</div>
+    </a>
   </div>
+</section>
 
-  <ul *ngIf="logs.length > 0" class="divide-y divide-gray-200">
-    <li *ngFor="let log of logs" class="py-3">
-      <div class="flex justify-between items-center">
-        <div>
-          <div class="font-medium text-gray-900">{{ log.action }}</div>
-          <div class="text-gray-500 text-sm">
-            {{ log.actorEmail }} — {{ log.resourceType }} — {{ log.createdAt | date:'short' }}
+<!-- Recent activity header + filters -->
+<section class="mb-4">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-800">Recent Activity</h3>
+      <p class="text-sm text-gray-500">Latest actions from the system (filtered by most recent).</p>
+    </div>
+
+    <!-- Filters toolbar -->
+    <div class="filters-toolbar">
+      <input
+        type="search"
+        placeholder="Search action, resource or user"
+        class="filter-input"
+        (input)="search.set($any($event.target).value)"
+        aria-label="Search activity"
+      />
+
+      <select class="filter-input" (change)="actionFilter.set($any($event.target).value)" aria-label="Filter by action">
+        <option value="">All actions</option>
+        @for (act of uniqueActions(); track act) {
+          <option [value]="act">{{ act }}</option>
+        }
+      </select>
+
+      <select class="filter-input" (change)="userFilter.set($any($event.target).value)" aria-label="Filter by user">
+        <option value="">All users</option>
+        @for (u of uniqueUsers(); track u) {
+          <option [value]="u">{{ u }}</option>
+        }
+      </select>
+    </div>
+  </div>
+</section>
+
+<!-- Loading skeletons -->
+@if (loading()) {
+  <div class="space-y-3">
+    @for (i of [1,2,3,4]; track i) {
+      <div class="h-16 rounded-lg bg-gray-200 animate-pulse"></div>
+    }
+  </div>
+}
+
+<!-- Error -->
+@if (!loading() && error()) {
+  <div class="text-sm text-red-600">{{ error() }}</div>
+}
+
+<!-- Empty result -->
+@if (!loading() && filteredLogs().length === 0) {
+  <div class="text-sm text-gray-500">No activity matches the selected filters.</div>
+}
+
+<!-- Logs list -->
+@if (!loading() && filteredLogs().length > 0) {
+  <div class="space-y-3">
+    @for (log of filteredLogs(); track log._id) {
+      <article class="log-card">
+        <div class="log-left">
+          <div class="log-action">{{ prettyAction(log.action) }}</div>
+          <div class="log-meta">
+            <span class="resource-badge">{{ log.resourceType }}</span>
+            <span class="meta-sep">•</span>
+            <span class="actor">{{ log.actorEmail }}</span>
+            <span class="meta-sep">•</span>
+            <time class="time">{{ log.createdAt | date:'short' }}</time>
           </div>
         </div>
 
-        <a routerLink="/admin/logs" class="text-blue-600 hover:underline text-sm">
-          View
-        </a>
-      </div>
-    </li>
-  </ul>
+        <div class="log-right">
+          <a routerLink="/admin/logs" class="view-link">View</a>
+        </div>
+      </article>
+    }
+  </div>
 
-</div>
+  <div class="mt-6 text-center">
+    <a routerLink="/admin/logs" class="view-more">View Full Logs</a>
+  </div>
+}

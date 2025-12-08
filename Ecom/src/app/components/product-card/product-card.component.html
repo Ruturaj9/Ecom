@@ -1,59 +1,52 @@
 <div
   (click)="goToDetail()"
-  class="group cursor-pointer rounded-2xl bg-white shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+  class="group cursor-pointer rounded-2xl bg-white shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
   role="button"
   tabindex="0"
   (keydown.enter)="goToDetail()"
 >
 
-  <!-- IMAGE WRAPPER -->
-  <div class="relative h-48 overflow-hidden">
-
+  <!-- IMAGE -->
+  <div class="relative h-48 overflow-hidden bg-gray-50">
     <img
       [src]="product.imageUrl || product.images?.[0] || 'https://via.placeholder.com/600x400?text=No+Image'"
       alt="{{ product.title }}"
       class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
     />
-
-    <!-- HEART WISHLIST BADGE -->
-    <button
-      (click)="$event.stopPropagation()"
-      class="absolute top-3 right-3 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition"
-    >
-      ❤️
-    </button>
-
   </div>
 
   <!-- PRODUCT INFO -->
   <div class="p-4 space-y-3">
 
+    <!-- Title + Location + Price -->
     <div class="flex items-start justify-between">
-      <div>
-        <h3 class="font-semibold text-lg leading-tight text-gray-800">
+
+      <div class="w-2/3">
+        <h3 class="font-semibold text-lg leading-tight text-gray-800 line-clamp-2">
           {{ product.title }}
         </h3>
-        <p class="text-sm text-gray-500">
+        <p class="text-sm text-gray-500 mt-1">
           {{ product.location || 'Local Farm' }}
         </p>
       </div>
 
       <div class="text-right">
-        <div class="text-green-700 text-xl font-bold">
+        <div class="text-green-700 text-xl font-bold leading-none">
           ₹{{ product.price }}
         </div>
-        <div class="text-xs text-gray-400">per kg</div>
+        <div class="text-xs text-gray-400 mt-0.5">per kg</div>
       </div>
+
     </div>
 
-    <!-- BUTTONS -->
+    <!-- ACTION BUTTONS -->
     <div class="flex gap-3">
 
       <button
-        class="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-100 transition"
-        (click)="$event.stopPropagation(); goToDetail($event)"
+        class="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+        (click)="goToDetail($event)"
       >
-        View
+        View Details
       </button>
 
       <button
@@ -64,6 +57,5 @@
       </button>
 
     </div>
-
   </div>
 </div>

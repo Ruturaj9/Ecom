@@ -1,0 +1,21 @@
+.admin-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* gap-3 */
+  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+  border-radius: 0.5rem; /* rounded-lg */
+  color: rgb(209 213 219 / 1); /* text-gray-300 */
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-link:hover {
+  background: rgb(31 41 55 / 1); /* bg-gray-800 */
+  color: white;
+}
+
+.active-admin-link {
+  background: rgb(31 41 55 / 1); /* bg-gray-800 */
+  color: white;
+  font-weight: 600; /* font-semibold */
+}

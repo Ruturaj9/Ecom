@@ -7,11 +7,12 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   templateUrl: './about-section.component.html',
   styles: [`
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(24px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
-    .fadeIn { animation: fadeIn 0.9s ease-out forwards; }
+    .fade-up { animation: fadeUp .8s ease-out forwards; opacity: 0; }
+    .fade-delay { animation-delay: .15s; }
   `]
 })
 export class AboutSectionComponent {}

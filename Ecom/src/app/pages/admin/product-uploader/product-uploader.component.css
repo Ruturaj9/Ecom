@@ -1,0 +1,167 @@
+/* src/app/pages/admin/product-uploader/product-uploader.component.css
+   Plain CSS equivalents for the utility-based classes.
+   Replaces all @apply usage so Tailwind processing is not required here. */
+
+/* Form label */
+.form-label {
+  display: block;
+  font-size: 0.875rem;        /* text-sm */
+  font-weight: 600;
+  color: #374151;             /* gray-700 */
+  margin-bottom: 0.25rem;
+}
+
+/* Form input */
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #D1D5DB;  /* gray-300 */
+  background: #ffffff;
+  color: #1F2937;             /* gray-800 */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, transform .12s ease;
+}
+
+.form-input:focus {
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.12); /* emerald ring */
+  border-color: #10B981; /* emerald-500 */
+}
+
+/* Form error text */
+.form-error {
+  color: #DC2626;            /* red-600 */
+  font-size: 0.75rem;        /* text-xs */
+  margin-top: 0.25rem;
+}
+
+/* Primary button */
+.btn-primary {
+  padding: 0.5rem 1rem;
+  background: #2563EB;       /* blue-600 */
+  color: #fff;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background .15s ease, transform .08s ease;
+}
+.btn-primary:hover { background: #1D4ED8; } /* blue-700 */
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Dark small button */
+.btn-dark {
+  padding: 0.5rem 1rem;
+  background: #111827;       /* gray-900 */
+  color: #fff;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: background .12s ease;
+}
+.btn-dark:hover { background: #0f1724; }
+
+/* Light small button */
+.btn-light {
+  padding: 0.5rem 1rem;
+  background: #E5E7EB;       /* gray-200 */
+  color: #111827;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: background .12s ease;
+}
+.btn-light:hover { background: #D1D5DB; }
+
+/* Green action button */
+.btn-green {
+  padding: 0.6rem 1rem;
+  background: #10B981;       /* emerald-600 */
+  color: #ffffff;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: background .12s ease, box-shadow .12s ease;
+}
+.btn-green:hover { background: #059669; }
+.btn-green:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Image card wrapper */
+.img-card {
+  position: relative;
+  border: 1px solid #E5E7EB; /* gray-200 */
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(2,6,23,0.04);
+  cursor: move;
+  background: #fff;
+}
+
+/* Image thumbnail */
+.img-thumb {
+  display: block;
+  width: 100%;
+  height: 9rem;              /* ~h-36 */
+  object-fit: cover;
+}
+
+/* Remove button on image */
+.img-remove {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.35rem;
+  background: rgba(255,255,255,0.9);
+  color: #000;
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease;
+}
+.img-remove:hover { transform: scale(1.05); background: #ffffff; }
+
+/* Small badge on image */
+.img-badge {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  background: rgba(255,255,255,0.9);
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.375rem;
+  color: #111827;
+}
+
+/* Overlay used for uploading state */
+.img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+/* Responsive helpers for grid of previews */
+@media (min-width: 768px) {
+  .preview-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .preview-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* small helpers */
+.disabled { opacity: 0.6; pointer-events: none; }
+
+/* subtle focus outlines for accessibility */
+:focus { outline: none; }
+:focus-visible {
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.12);
+  border-radius: 0.5rem;
+}

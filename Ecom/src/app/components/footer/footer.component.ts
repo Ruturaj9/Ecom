@@ -13,7 +13,6 @@ export class FooterComponent {
 
   constructor(private router: Router) {}
 
-  /** Navigate to top of a page */
   navigateTop(path: string) {
     this.router.navigate([path], {
       fragment: undefined,
@@ -23,7 +22,6 @@ export class FooterComponent {
     });
   }
 
-  /** Navigate to a specific section (with fragment refresh fix) */
   navigate(path: string, fragment: string) {
     this.router.navigate([path], {
       fragment: undefined,

@@ -6,10 +6,24 @@ const router = express.Router();
 
 /**
  * GET /sliders
- * Public endpoint – returns active sliders sorted by order.
+ * Public endpoint – returns only active sliders sorted by order.
+ * Output format matches frontend expectations:
  *
- * - Main logic preserved exactly.
- * - Added consistent structure & error-safe response handling.
+ * {
+ *   sliders: [
+ *     {
+ *       title,
+ *       subtitle,
+ *       buttonText,
+ *       buttonLink,
+ *       order,
+ *       imageUrl: {
+ *         desktop,
+ *         mobile
+ *       }
+ *     }
+ *   ]
+ * }
  */
 router.get('/', async (req, res, next) => {
   try {
@@ -17,7 +31,20 @@ router.get('/', async (req, res, next) => {
       .sort({ order: 1 })
       .lean();
 
-    return res.json({ sliders });
+    const formatted = sliders.map(s => ({
+      title: s.title,
+      subtitle: s.subtitle,
+      buttonText: s.buttonText,
+      buttonLink: s.buttonLink,
+      order: s.order,
+
+      imageUrl: {
+        desktop: s.desktop,
+        mobile: s.mobile
+      }
+    }));
+
+    return res.json({ sliders: formatted });
   } catch (err) {
     next(err);
   }

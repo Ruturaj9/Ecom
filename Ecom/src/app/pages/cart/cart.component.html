@@ -1,97 +1,122 @@
 <div class="max-w-6xl mx-auto px-4 py-10">
 
   <!-- TITLE -->
-  <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 mb-8">
+  <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 mb-8">
     Your Cart
   </h1>
 
   <!-- EMPTY CART -->
-  @if (cart.getCart().length === 0) {
+  @if (isEmpty()) {
     <div class="text-center py-20">
       <div class="flex justify-center mb-6">
-        <div class="empty-illustration"></div>
+        <div
+          class="w-28 h-28 rounded-full bg-emerald-100 relative animate-bounce-slow shadow-inner">
+          <div
+            class="absolute w-16 h-4 bg-black/10 rounded-full bottom-0 left-1/2 -translate-x-1/2 blur-md"></div>
+        </div>
       </div>
 
-      <h2 class="text-xl font-semibold text-gray-700 mb-2">Your cart is empty</h2>
-      <p class="text-gray-500 mb-6">Looks like you haven't added anything yet.</p>
+      <h2 class="text-xl font-semibold text-neutral-700 mb-2">Your cart is empty</h2>
+      <p class="text-neutral-500 mb-6">Looks like you haven't added anything yet.</p>
 
-      <a routerLink="/products"
-        class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow-md transition">
+      <a
+        routerLink="/products"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow-md transition"
+      >
         Start Shopping
       </a>
     </div>
   }
 
-  <!-- CART GRID -->
-  @if (cart.getCart().length > 0) {
+  <!-- CART LIST -->
+  @if (!isEmpty()) {
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-      <!-- LEFT: CART ITEMS -->
+      <!-- LEFT ITEMS -->
       <div class="space-y-5 lg:col-span-2">
-
-        @for (item of cart.getCart(); track item.id) {
-          <div class="cart-card relative rounded-2xl p-5 bg-white shadow-sm hover:shadow-lg transition-shadow">
+        @for (item of cartItems(); track item.id) {
+          <div
+            class="relative rounded-2xl p-5 bg-white shadow-sm hover:shadow-lg transition-transform hover:-translate-y-1">
 
             <div class="flex items-start gap-5">
 
-              <!-- PRODUCT IMAGE -->
-              <img [src]="item.image"
-                  alt="{{ item.title }}"
-                  class="w-28 h-28 rounded-xl object-cover shadow-md" />
+              <!-- IMAGE -->
+              <img
+                [src]="item.image || 'https://via.placeholder.com/200x200?text=No+Image'"
+                alt="{{ item.title }}"
+                class="w-28 h-28 rounded-xl object-cover shadow-md"
+                loading="lazy"
+              />
 
-              <!-- PRODUCT DETAILS -->
+              <!-- PRODUCT INFO -->
               <div class="flex-grow min-w-0">
-                <h2 class="text-lg font-semibold text-gray-900 truncate">
+                <h2 class="text-lg font-semibold text-neutral-900 truncate">
                   {{ item.title }}
                 </h2>
 
-                <p class="text-gray-600 text-sm mt-1">
-                  ₹{{ item.price }} <span class="text-xs text-gray-400">/ kg</span>
+                <p class="text-neutral-600 text-sm mt-1">
+                  ₹{{ item.price }} <span class="text-xs text-neutral-400">/ kg</span>
                 </p>
 
                 <!-- QTY CONTROLS -->
                 <div class="flex items-center gap-4 mt-4">
-                  <button (click)="decrease(item.id)" class="qty-btn">-</button>
+                  <button
+                    (click)="decrease(item.id)"
+                    class="h-8 w-8 flex items-center justify-center rounded-md border border-neutral-300 text-neutral-700 text-lg font-semibold bg-white hover:bg-neutral-100 active:scale-95 transition"
+                  >-</button>
+
                   <span class="text-lg font-semibold">{{ item.quantity }}</span>
-                  <button (click)="increase(item.id)" class="qty-btn">+</button>
+
+                  <button
+                    (click)="increase(item.id)"
+                    class="h-8 w-8 flex items-center justify-center rounded-md border border-neutral-300 text-neutral-700 text-lg font-semibold bg-white hover:bg-neutral-100 active:scale-95 transition"
+                  >+</button>
                 </div>
               </div>
 
-              <!-- REMOVE BUTTON -->
-              <button (click)="remove(item.id)"
-                      class="remove-btn absolute top-5 right-5">
+              <!-- REMOVE -->
+              <button
+                (click)="remove(item.id)"
+                class="absolute top-5 right-5 text-neutral-400 hover:text-red-600 transition text-xl leading-none active:scale-110"
+              >
                 ✕
               </button>
             </div>
+
           </div>
         }
       </div>
 
-      <!-- RIGHT: ORDER SUMMARY -->
-      <div class="self-start sticky top-24 bg-white rounded-2xl shadow-md p-6 border border-gray-100 summary-card">
+      <!-- SUMMARY -->
+      <div class="self-start sticky top-24 bg-white rounded-2xl shadow-md p-6 border border-neutral-100 transition-shadow hover:shadow-xl">
+
         <h3 class="text-xl font-semibold mb-4">Order Summary</h3>
 
-        <div class="flex justify-between text-gray-700 text-sm mb-3">
+        <div class="flex justify-between text-neutral-700 text-sm mb-3">
           <span>Subtotal</span>
-          <span>₹{{ cart.getTotal() }}</span>
+          <span>₹{{ total() }}</span>
         </div>
 
-        <div class="flex justify-between text-gray-700 text-sm mb-6">
+        <div class="flex justify-between text-neutral-700 text-sm mb-6">
           <span>Delivery</span>
-          <span class="text-emerald-600">FREE</span>
+          <span class="text-emerald-600 font-medium">FREE</span>
         </div>
 
         <div class="border-t pt-4 mb-6"></div>
 
         <div class="flex justify-between text-lg font-bold">
           <span>Total</span>
-          <span>₹{{ cart.getTotal() }}</span>
+          <span>₹{{ total() }}</span>
         </div>
 
-        <button class="checkout-btn w-full mt-6">
+        <button
+          class="w-full mt-6 py-3 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 shadow-md hover:shadow-lg active:scale-95 transition"
+        >
           Proceed to Checkout
         </button>
+
       </div>
     </div>
   }
+
 </div>

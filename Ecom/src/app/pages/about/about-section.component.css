@@ -1,38 +1,13 @@
-/* Fade-in animation */
-@keyframes fadeUp {
-  0% { opacity: 0; transform: translateY(24px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-.fadeIn {
+.fade-up {
   animation: fadeUp 0.8s ease-out forwards;
   opacity: 0;
 }
 
-.delay-150 {
+.fade-delay {
   animation-delay: 0.15s;
 }
 
-/* Wrapper spacing */
-.about-wrapper {
-  @apply max-w-6xl mx-auto px-4 py-16;
-}
-
-/* STAT CARD */
-.stat-card {
-  @apply bg-white/80 backdrop-blur-sm shadow-md p-8 rounded-2xl text-center
-         transition duration-300 border border-gray-200;
-}
-
-.stat-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.08);
-  border-color: rgba(16,185,129,0.4);
-}
-
-/* Focus visible */
-.stat-card:focus-visible {
-  outline: 3px solid rgba(16,185,129,0.4);
-  outline-offset: 4px;
-  border-radius: 1rem;
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
 }

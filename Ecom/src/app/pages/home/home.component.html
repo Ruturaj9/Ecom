@@ -1,19 +1,24 @@
 <div id="top" class="scroll-anchor"></div>
 
-<!-- ================= PREMIUM HOME SLIDER ================= -->
+<!-- ================= SLIDER ================= -->
 <section class="relative w-full select-none">
   <div class="max-w-7xl mx-auto px-4 py-6">
 
+    <!-- Loading -->
     @if (sliderLoading()) {
       <div class="h-64 md:h-[430px] flex items-center justify-center">
-        <div class="animate-pulse text-gray-500">Loading sliders...</div>
+        <div class="animate-pulse text-neutral-500">Loading homepage visuals…</div>
       </div>
     }
 
+    <!-- Error -->
     @if (sliderError()) {
-      <div class="text-red-600">{{ sliderError() }}</div>
+      <div class="h-64 md:h-[430px] flex items-center justify-center">
+        <div class="text-red-600">{{ sliderError() }}</div>
+      </div>
     }
 
+    <!-- Slider -->
     @if (sliders().length > 0) {
       <div
         class="relative rounded-3xl overflow-hidden h-64 md:h-[430px] shadow-xl group"
@@ -21,28 +26,24 @@
         (touchmove)="onTouchMove($event)"
         (touchend)="onTouchEnd()"
       >
-
         @for (slide of sliders(); track slide._id; let i = $index) {
           <div
             class="absolute inset-0 transition-opacity duration-700 ease-in-out"
             [class.opacity-100]="currentSlide === i"
             [class.opacity-0]="currentSlide !== i"
+            [attr.aria-hidden]="currentSlide !== i"
           >
-
-            <!-- FIXED: PERFECT BACKGROUND IMAGE -->
             <div
               class="absolute inset-0 bg-center bg-cover"
               [style.background-image]="'url(' + getImage(slide) + ')'"
+              role="img"
+              [attr.aria-label]="slide.title ?? 'Promotional slide'"
             ></div>
 
-            <!-- DARK GRADIENT -->
             <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
 
-            <div class="absolute inset-y-0 left-10 flex flex-col justify-center max-w-xl text-white">
-
-              <h2 class="text-3xl md:text-5xl font-extrabold drop-shadow-xl animate-fade-slide">
-                {{ slide.title }}
-              </h2>
+            <div class="absolute inset-y-0 left-10 flex flex-col justify-center max-w-xl text-white p-6">
+              <h2 class="text-3xl md:text-5xl font-extrabold animate-fade-slide">{{ slide.title }}</h2>
 
               @if (slide.subtitle) {
                 <p class="mt-3 text-lg md:text-xl text-white/90 animate-fade-delayed">
@@ -52,44 +53,40 @@
 
               @if (slide.buttonText) {
                 <button
-                  class="mt-6 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-full font-semibold shadow-2xl
-                         transition transform hover:-translate-y-0.5 animate-fade-delayed"
+                  class="mt-6 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-full font-semibold shadow-lg transition"
                   (click)="go(slide)"
+                  aria-label="Open {{ slide.buttonText }}"
                 >
                   {{ slide.buttonText }}
                 </button>
               }
-
             </div>
           </div>
         }
 
-        <!-- NAV BUTTONS -->
+        <!-- Prev / Next -->
         <button
-          class="absolute top-1/2 -translate-y-1/2 left-4 bg-white/90 hover:bg-white shadow-lg
-                 p-3 rounded-full z-20 transition opacity-0 group-hover:opacity-100"
+          class="absolute top-1/2 -translate-y-1/2 left-4 bg-white/90 hover:bg-white shadow-lg p-3 rounded-full opacity-0 group-hover:opacity-100 transition z-20"
           (click)="prev()"
-        >
-          ‹
-        </button>
+          aria-label="Previous slide"
+        >‹</button>
 
         <button
-          class="absolute top-1/2 -translate-y-1/2 right-4 bg-white/90 hover:bg-white shadow-lg
-                 p-3 rounded-full z-20 transition opacity-0 group-hover:opacity-100"
+          class="absolute top-1/2 -translate-y-1/2 right-4 bg-white/90 hover:bg-white shadow-lg p-3 rounded-full opacity-0 group-hover:opacity-100 transition z-20"
           (click)="next()"
-        >
-          ›
-        </button>
+          aria-label="Next slide"
+        >›</button>
 
-        <!-- DOTS -->
+        <!-- Dots -->
         <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-3 z-20">
           @for (s of sliders(); track s._id; let i = $index) {
-            <div
+            <button
               (click)="goTo(i)"
-              class="w-3 h-3 rounded-full border border-white/70 cursor-pointer transition duration-300"
+              class="w-3 h-3 rounded-full border border-white/70 cursor-pointer"
               [class.bg-white]="currentSlide === i"
               [class.bg-white/40]="currentSlide !== i"
-            ></div>
+              aria-label="Go to slide {{ i + 1 }}"
+            ></button>
           }
         </div>
       </div>
@@ -97,79 +94,103 @@
   </div>
 </section>
 
-<!-- ================= HERO SECTION ================= -->
+<!-- ================= HERO (informational) ================= -->
 <section class="bg-green-50">
   <div class="max-w-7xl mx-auto px-4 py-12 lg:py-20">
     <div class="grid md:grid-cols-2 gap-8 items-center">
-
       <div>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-neutral-900">
           Fresh produce from local farmers,
           <span class="text-green-600">delivered to your doorstep</span>
         </h1>
 
-        <p class="mt-4 text-gray-600 text-lg">
-          Connect with farmers, discover fresh and organic produce,
-          and buy directly from the source — fair pricing, transparent sourcing.
+        <p class="mt-4 text-neutral-600 text-lg">
+          Connect with farmers, discover fresh, and buy directly from the source.
         </p>
-
-        <div class="mt-6 flex gap-3">
-          <input type="text" class="flex-1 px-4 py-3 rounded-lg border" placeholder="Search for products or locations" />
-          <button class="px-6 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700">Search</button>
-        </div>
       </div>
 
       <div class="hidden md:block">
-        <img src="https://picsum.photos/seed/farm/800/600" class="rounded-2xl shadow-lg" />
+        <img src="https://picsum.photos/seed/farm/800/600" class="rounded-2xl shadow-lg" alt="Fresh farm produce" />
       </div>
-
     </div>
   </div>
 </section>
 
-
-<!-- ================= CATEGORIES ================= -->
+<!-- ================= CATEGORIES (professional names only) ================= -->
 <section class="py-10">
   <div class="max-w-7xl mx-auto px-4">
-    <h2 class="text-2xl font-bold">Shop by Category</h2>
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold">Shop by Category</h2>
 
-    <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-      @for (c of categories; track $index) {
-        <div
-          (click)="goToCategory(c)"
-          class="bg-white p-4 rounded-xl flex flex-col items-center shadow hover:shadow-md transition cursor-pointer"
-        >
-          <div class="text-3xl">{{ c.icon }}</div>
-          <div class="mt-2 font-medium">{{ c.name }}</div>
-        </div>
+      @if (categoryLoading()) {
+        <div class="text-sm text-neutral-500">Loading categories…</div>
+      } @else if (categoryError()) {
+        <div class="text-sm text-red-600">{{ categoryError() }}</div>
+      } @else {
+        <div class="text-sm text-neutral-600">Choose a category to browse curated products</div>
       }
     </div>
+
+    @if ((categories() || []).length === 0 && !categoryLoading() && !categoryError()) {
+      <div class="mt-6 text-neutral-500">No categories available at this time.</div>
+    }
+
+    @if ((categories() || []).length > 0) {
+      <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+        @for (c of categories(); track c; let i = $index) {
+          <button
+            (click)="goToCategory(c?.name ?? c)"
+            class="w-full text-left bg-white p-3 rounded-lg border hover:shadow-md transition text-sm font-medium text-neutral-800"
+            aria-label="Browse {{ c?.name ?? c }}"
+          >
+            {{ c?.name ?? c }}
+          </button>
+        }
+      </div>
+    }
   </div>
 </section>
 
-
-<!-- ================= FEATURED PRODUCTS ================= -->
-<section class="py-10 bg-gray-50">
+<!-- ================= FEATURED PRODUCTS (paginated) ================= -->
+<section class="py-10 bg-neutral-50">
   <div class="max-w-7xl mx-auto px-4">
-
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between mb-4">
       <h2 class="text-2xl font-bold">Featured Products</h2>
-      <a class="text-green-600 cursor-pointer hover:underline">See all</a>
+
+      <div class="flex items-center gap-4">
+        <div class="text-sm text-neutral-600">Page {{ currentPage() }} of {{ totalPages() }}</div>
+        <div class="flex items-center gap-2">
+          <button
+            (click)="prevPage()"
+            [disabled]="currentPage() <= 1"
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            aria-label="Previous page"
+          >Prev</button>
+
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage() >= totalPages()"
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            aria-label="Next page"
+          >Next</button>
+        </div>
+      </div>
     </div>
 
+    <!-- Loading / Error / Content -->
     @if (productLoading()) {
-      <div class="mt-6 text-gray-500">Loading products...</div>
-    }
-
-    @if (productError()) {
+      <div class="mt-6 text-neutral-500">Loading featured products…</div>
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="h-44 rounded-xl bg-white animate-pulse" *ngFor="let _ of [1,2,3,4]"></div>
+      </div>
+    } @else if (productError()) {
       <div class="mt-6 text-red-600">{{ productError() }}</div>
+    } @else {
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        @for (p of featured(); track p._id ?? $index) {
+          <app-product-card [product]="p"></app-product-card>
+        }
+      </div>
     }
-
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-      @for (p of featured(); track p._id ?? $index) {
-        <app-product-card [product]="p"></app-product-card>
-      }
-    </div>
-
   </div>
 </section>

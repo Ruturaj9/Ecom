@@ -1,7 +1,7 @@
 // src/app/services/product.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -66,6 +66,7 @@ export class ProductService {
   uploadSliderImages(
     files: File[]
   ): Observable<{ urls: { desktop: string; mobile: string }[] }> {
+
     const fd = new FormData();
     files.forEach(f => fd.append('images', f));
 
@@ -88,9 +89,31 @@ export class ProductService {
     );
   }
 
+  // ⭐ FIXED VERSION — Uses backend imageUrl if available
   getSliders(): Observable<any> {
-    return this.http.get(
+    return this.http.get<{ sliders: any[] }>(
       `${this.baseAdmin}/slider`,
+      { withCredentials: true }
+    ).pipe(
+      map(res => ({
+        sliders: (res.sliders || []).map(s => ({
+          ...s,
+          imageUrl: s.imageUrl
+            ? s.imageUrl
+            : {
+                desktop: s.desktop || '',
+                mobile: s.mobile || ''
+              }
+        }))
+      }))
+    );
+  }
+
+  // ⭐⭐ NEW — Update Slider (Activate/Deactivate)
+  updateSlider(id: string, payload: any): Observable<any> {
+    return this.http.put(
+      `${this.baseAdmin}/slider/${id}`,
+      payload,
       { withCredentials: true }
     );
   }
@@ -106,7 +129,6 @@ export class ProductService {
   // PUBLIC ENDPOINTS
   // ===========================
 
-  // ⭐ Server-side paginated public products
   getPublicProductsPaginated(params: {
     page?: number;
     limit?: number;
@@ -119,43 +141,32 @@ export class ProductService {
       .set('page', params.page ?? 1)
       .set('limit', params.limit ?? 24);
 
-    if (params.q) {
-      httpParams = httpParams.set('q', params.q);
-    }
-
-    if (params.category) {
-      httpParams = httpParams.set('category', params.category);
-    }
-
-    if (params.sort && params.sort !== 'none') {
-      httpParams = httpParams.set('sort', params.sort);
-    }
+    if (params.q) httpParams = httpParams.set('q', params.q);
+    if (params.category) httpParams = httpParams.set('category', params.category);
+    if (params.sort && params.sort !== 'none') httpParams = httpParams.set('sort', params.sort);
 
     return this.http.get<any>(`${this.basePublic}/products`, { params: httpParams });
   }
 
-  // ⭐ Get all (legacy)
   getPublicProducts(): Observable<{ products: any[] }> {
     return this.http.get<{ products: any[] }>(
       `${this.basePublic}/products`
     );
   }
 
-  // ⭐ Get a single product
   getPublicProduct(id: string): Observable<{ product: any }> {
     return this.http.get<{ product: any }>(
       `${this.basePublic}/products/${id}`
     );
   }
 
-  // Returns homepage sliders (public)
-getSlidersPublic(): Observable<{ sliders: any[] }> {
-  return this.http.get<{ sliders: any[] }>(
-    `${this.basePublic}/sliders`
-  );
-}
+  // ⭐ Public sliders
+  getSlidersPublic(): Observable<{ sliders: any[] }> {
+    return this.http.get<{ sliders: any[] }>(
+      `${this.basePublic}/sliders`
+    );
+  }
 
-  // ⭐ NEW → Get categories for frontend dropdown
   getPublicCategories(): Observable<{ categories: any[] }> {
     return this.http.get<{ categories: any[] }>(
       `${this.basePublic}/products/categories`

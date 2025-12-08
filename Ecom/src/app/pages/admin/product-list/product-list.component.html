@@ -1,91 +1,118 @@
-<div class="p-4">
-  <h2 class="text-2xl font-semibold mb-4">Products</h2>
+<div class="p-6">
 
+  <!-- Title -->
+  <h2 class="text-3xl font-bold text-gray-800 mb-8">Manage Products</h2>
+
+  <!-- Loading Skeleton -->
   @if (loading) {
-    <p class="text-gray-600">Loading products...</p>
+    <div class="space-y-4">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="animate-pulse bg-gray-200 h-16 rounded-lg"></div>
+      }
+    </div>
   }
 
+  <!-- Error Message -->
   @if (!loading && errorMessage) {
-    <p class="text-red-600">{{ errorMessage }}</p>
+    <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+      {{ errorMessage }}
+    </div>
   }
 
-  @if (!loading && !errorMessage && products.length === 0) {
+  <!-- No Data -->
+  @if (!loading && products.length === 0 && !errorMessage) {
     <p class="text-gray-600">No products found.</p>
   }
 
+  <!-- Products Table -->
   @if (!loading && products.length > 0) {
-    <div class="overflow-x-auto border rounded-lg bg-white shadow">
-      <table class="w-full">
+
+    <div class="overflow-x-auto bg-white shadow-lg rounded-xl border border-gray-200">
+      <table class="min-w-full text-left text-sm">
         <thead>
-          <tr class="bg-gray-100 border-b">
-            <th class="p-2 border-r">Image</th>
-            <th class="p-2 border-r">Title</th>
-            <th class="p-2 border-r">Price</th>
-            <th class="p-2 border-r">Category</th>
-            <th class="p-2">Actions</th>
+          <tr class="bg-gray-100 text-gray-700 uppercase text-xs tracking-wide border-b">
+            <th class="p-4">Image</th>
+            <th class="p-4">Title</th>
+            <th class="p-4">Price</th>
+            <th class="p-4">Category</th>
+            <th class="p-4 text-center">Actions</th>
           </tr>
         </thead>
 
-        <tbody>
+        <tbody class="divide-y divide-gray-200">
           @for (p of products; track p._id) {
-            <tr class="border-b hover:bg-gray-50 transition">
-              <td class="border-r p-2">
+            <tr class="hover:bg-gray-50 transition">
+
+              <!-- Image -->
+              <td class="p-4">
                 <img
                   [src]="p.images?.[0]"
                   alt="{{ p.title }}"
-                  class="w-16 h-16 object-cover rounded"
+                  class="w-16 h-16 object-cover rounded-lg shadow-sm border"
                 />
               </td>
 
-              <td class="border-r p-2 font-medium">{{ p.title }}</td>
-              <td class="border-r p-2">₹{{ p.price }}</td>
-              <td class="border-r p-2">
-                {{ p.category?.name || '—' }}
+              <!-- Title -->
+              <td class="p-4 font-semibold text-gray-800">
+                {{ p.title }}
               </td>
 
-              <td class="p-2 flex gap-2">
+              <!-- Price -->
+              <td class="p-4 text-gray-700 font-medium">
+                ₹{{ p.price }}
+              </td>
+
+              <!-- Category -->
+              <td class="p-4">
+                <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-medium">
+                  {{ p.category?.name || 'Uncategorized' }}
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td class="p-4 flex justify-center gap-3">
+
                 <button
-                  class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  (click)="editProduct(p._id)"
-                >
+                  class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded shadow hover:bg-blue-700 transition"
+                  (click)="editProduct(p._id)">
                   Edit
                 </button>
 
                 <button
-                  class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  (click)="deleteProduct(p._id)"
-                >
+                  class="px-3 py-1.5 bg-red-600 text-white text-xs rounded shadow hover:bg-red-700 transition"
+                  (click)="deleteProduct(p._id)">
                   Delete
                 </button>
+
               </td>
+
             </tr>
           }
         </tbody>
+
       </table>
     </div>
 
-    <!-- PAGINATION -->
-    <div class="flex items-center justify-between mt-6 px-1">
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-6">
 
       <!-- Prev -->
       <button
-        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+        class="px-4 py-2 bg-gray-200 rounded-lg text-gray-700 hover:bg-gray-300 disabled:opacity-50"
         (click)="prevPage()"
-        [disabled]="page === 1"
-      >
-        Prev
+        [disabled]="page === 1">
+        ← Prev
       </button>
 
       <!-- Page Numbers -->
       <div class="flex gap-2">
         @for (num of pages(); track num) {
           <button
-            class="px-3 py-1 rounded transition"
+            (click)="goToPage(num)"
+            class="px-3 py-1.5 rounded-lg text-sm font-medium transition"
             [class.bg-blue-600]="num === page"
             [class.text-white]="num === page"
-            [class.bg-gray-200]="num !== page"
-            (click)="goToPage(num)"
-          >
+            [class.bg-gray-200]="num !== page">
             {{ num }}
           </button>
         }
@@ -93,22 +120,21 @@
 
       <!-- Next -->
       <button
-        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+        class="px-4 py-2 bg-gray-200 rounded-lg text-gray-700 hover:bg-gray-300 disabled:opacity-50"
         (click)="nextPage()"
-        [disabled]="page === totalPages"
-      >
-        Next
+        [disabled]="page === totalPages">
+        Next →
       </button>
-
     </div>
 
-    <!-- Showing x of y -->
-    <div class="text-sm text-gray-600 mt-2 text-center">
+    <!-- Showing Summary -->
+    <div class="text-sm text-gray-600 mt-3 text-center">
       Showing
       <strong>{{ Math.min(page * limit, total) }}</strong>
       of
       <strong>{{ total }}</strong>
       products
     </div>
+
   }
 </div>

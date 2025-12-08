@@ -1,28 +1,59 @@
-import { Component } from '@angular/core';
+import { Component, signal, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { CartService } from '../../services/cart.service';
+import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './navbar.component.html'
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.css'],
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   mobileOpen = false;
 
-  categories = ['Vegetables', 'Fruits', 'Grains', 'Dairy', 'Pulses', 'Seeds'];
+  // dynamic categories from backend
+  categories = signal<string[]>([]);
+  categoriesLoading = signal<boolean>(true);
+
   searchText = '';
 
-  constructor(public cart: CartService, private router: Router) {}
+  constructor(
+    public cart: CartService,
+    private router: Router,
+    private productService: ProductService
+  ) {}
+
+  ngOnInit() {
+    this.loadCategories();
+  }
+
+  loadCategories() {
+    this.categoriesLoading.set(true);
+
+    this.productService.getPublicCategories().subscribe({
+      next: (res) => {
+        const list =
+          res?.categories?.map((c: any) => c.name) ?? [];
+
+        this.categories.set(list);
+        this.categoriesLoading.set(false);
+      },
+      error: () => {
+        this.categories.set([]);
+        this.categoriesLoading.set(false);
+      },
+    });
+  }
 
   toggleMobile() {
     this.mobileOpen = !this.mobileOpen;
   }
 
-  get cartCount() {
+  get cartCount(): number {
     return this.cart.getCart().reduce((sum, item) => sum + item.quantity, 0);
   }
 
@@ -41,16 +72,13 @@ export class NavbarComponent {
     this.searchText = '';
   }
 
-  /** FIX: Always scroll even if clicking same link again */
   navigateWithFragment(path: string, fragment: string) {
     this.mobileOpen = false;
 
-    this.router.navigate([path], {
-      fragment: undefined,     // ← FIXED (no null)
-      skipLocationChange: true
-    })
-    .then(() => {
-      this.router.navigate([path], { fragment });
-    });
+    this.router
+      .navigate([path], { skipLocationChange: true })
+      .then(() => {
+        this.router.navigate([path], { fragment });
+      });
   }
 }

@@ -1,15 +1,22 @@
-/* Fade-in on load */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-:host {
-  display: block;
-  animation: fadeInUp 0.55s ease-out;
+.fade-up {
+  animation: fadeInUp .65s ease-out forwards;
+  opacity: 0;
 }
 
-/* Prevent scroll flicker */
+.delay-100 { animation-delay: .1s; }
+.delay-200 { animation-delay: .2s; }
+.delay-300 { animation-delay: .3s; }
+
+:host {
+  display: block;
+}
+
+/* Smoother rendering on all devices */
 * {
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;

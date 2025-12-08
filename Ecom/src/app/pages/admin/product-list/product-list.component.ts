@@ -1,4 +1,3 @@
-// src/app/pages/admin/product-list/product-list.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../../services/product.service';
@@ -10,17 +9,17 @@ import { ProductService } from '../../../services/product.service';
   templateUrl: './product-list.component.html'
 })
 export class ProductListComponent implements OnInit {
+
   products: any[] = [];
   loading = true;
   errorMessage = '';
 
-  // Pagination state
+  // Pagination
   page = 1;
   limit = 10;
   total = 0;
   totalPages = 1;
 
-  // Allow Math in template
   Math = Math;
 
   constructor(private productSvc: ProductService) {}
@@ -35,16 +34,12 @@ export class ProductListComponent implements OnInit {
 
     this.productSvc.getProductsPaginated(this.page, this.limit).subscribe({
       next: (res: any) => {
-        console.log('PRODUCT PAGINATED RESPONSE:', res);
-
         this.products = res.products ?? [];
         this.total = res.total ?? 0;
         this.totalPages = res.totalPages ?? 1;
-
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load products', err);
         this.products = [];
         this.errorMessage = err?.error?.message || 'Failed to load products';
         this.loading = false;
@@ -52,7 +47,6 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  // Pagination helper — generates [1,2,3,...]
   pages(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
@@ -89,7 +83,6 @@ export class ProductListComponent implements OnInit {
         this.products = this.products.filter(p => p._id !== id);
       },
       error: (err) => {
-        console.error('Delete failed', err);
         this.errorMessage = err?.error?.message || 'Failed to delete product';
       }
     });

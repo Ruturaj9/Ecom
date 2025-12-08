@@ -11,8 +11,7 @@ const { upload, formatUploadResponse } = require('../../middleware/uploadImages'
 const router = express.Router();
 
 /* ------------------------------------------------------
-   UPLOAD SLIDER IMAGES
-   POST /admin/slider/upload
+   UPLOAD SLIDER IMAGES (desktop+mobile)
 ------------------------------------------------------- */
 router.post(
   '/upload',
@@ -21,7 +20,6 @@ router.post(
   async (req, res, next) => {
     try {
       const files = Array.isArray(req.files) ? req.files : [];
-
       if (files.length === 0) {
         return res.status(400).json({ error: 'No images uploaded' });
       }
@@ -48,7 +46,7 @@ router.post(
 );
 
 /* ------------------------------------------------------
-   CREATE SLIDER ITEMS
+   CREATE ALL SLIDER ITEMS (Bulk)
    POST /admin/slider
 ------------------------------------------------------- */
 router.post(
@@ -65,17 +63,22 @@ router.post(
       const { sliders } = req.body;
       const created = [];
 
-      for (const s of sliders) {
-        const order = s.order || (await Slider.countDocuments()) + 1;
+      let startCount = await Slider.countDocuments();
 
+      for (const s of sliders) {
         const saved = await Slider.create({
           title: s.title || '',
           subtitle: s.subtitle || '',
           buttonText: s.buttonText || '',
           buttonLink: s.buttonLink || '',
+
+          // DB fields
           desktop: s.desktop,
           mobile: s.mobile,
-          order,
+
+          // ordering
+          order: s.order || ++startCount,
+
           active: s.active ?? true,
           createdBy: req.admin.id,
         });
@@ -91,13 +94,37 @@ router.post(
 );
 
 /* ------------------------------------------------------
-   GET SLIDER LIST
-   GET /admin/slider
+   ADMIN GET LIST (Normalized output)
 ------------------------------------------------------- */
 router.get('/', requireAdmin(['admin']), async (req, res, next) => {
   try {
     const sliders = await Slider.find().sort({ order: 1 }).lean();
-    return res.json({ sliders });
+
+    const formatted = sliders.map(s => {
+      // Support both DB formats
+      const desktop = s.desktop || s.imageUrl?.desktop;
+      const mobile = s.mobile || s.imageUrl?.mobile;
+
+      return {
+        _id: s._id,
+        title: s.title,
+        subtitle: s.subtitle,
+        buttonText: s.buttonText,
+        buttonLink: s.buttonLink,
+        active: s.active,
+        order: s.order,
+
+        imageUrl: {
+          desktop,
+          mobile
+        },
+
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt
+      };
+    });
+
+    return res.json({ sliders: formatted });
   } catch (err) {
     next(err);
   }
@@ -113,9 +140,18 @@ router.put(
   validateRequest,
   async (req, res, next) => {
     try {
+      const updatePayload = { ...req.body };
+
+      // If frontend sends { imageUrl: {desktop,mobile} } → map
+      if (updatePayload.imageUrl) {
+        updatePayload.desktop = updatePayload.imageUrl.desktop;
+        updatePayload.mobile = updatePayload.imageUrl.mobile;
+        delete updatePayload.imageUrl;
+      }
+
       const updated = await Slider.findByIdAndUpdate(
         req.params.id,
-        { $set: req.body },
+        { $set: updatePayload },
         { new: true }
       );
 

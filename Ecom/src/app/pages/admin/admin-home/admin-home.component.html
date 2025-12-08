@@ -1,6 +1,150 @@
-<div class="p-4">
-  <h1 class="text-2xl font-bold">Welcome Admin 👋</h1>
-  <p class="mt-2 text-gray-600">
-    Use the sidebar to manage products, sliders, and audit logs.
-  </p>
+<div class="p-6 max-w-7xl mx-auto">
+
+  <!-- HEADER -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-extrabold text-neutral-900 tracking-tight">
+      Welcome Back, Admin 👋
+    </h1>
+    <p class="text-neutral-600 mt-1">
+      Manage your products, sliders, categories, orders and users efficiently.
+    </p>
+  </div>
+
+  <!-- STATS GRID -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+
+    <!-- CARD: Products -->
+    <div
+      class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition group border border-neutral-200">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-600 grid place-items-center">
+          <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <path d="M3 3h18v6H3z"></path>
+            <path d="M3 9h18v12H3z"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xl font-bold text-neutral-900">Products</div>
+          <p class="text-neutral-500 text-sm">Manage inventory</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD: Sliders -->
+    <div
+      class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition group border border-neutral-200">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl bg-blue-100 text-blue-600 grid place-items-center">
+          <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path d="M4 12h16"></path>
+            <path d="M4 6h16"></path>
+            <path d="M4 18h16"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xl font-bold text-neutral-900">Sliders</div>
+          <p class="text-neutral-500 text-sm">Homepage banners</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD: Users -->
+    <div
+      class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition group border border-neutral-200">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl bg-purple-100 text-purple-600 grid place-items-center">
+          <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M20 8v6"></path>
+            <path d="M23 11h-6"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xl font-bold text-neutral-900">Users</div>
+          <p class="text-neutral-500 text-sm">Admin users only</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD: Logs -->
+    <div
+      class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition group border border-neutral-200">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl bg-orange-100 text-orange-600 grid place-items-center">
+          <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path d="M3 3h18v18H3z"></path>
+            <path d="M8 7h8"></path>
+            <path d="M8 12h8"></path>
+            <path d="M8 17h5"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xl font-bold text-neutral-900">Audit Logs</div>
+          <p class="text-neutral-500 text-sm">Track admin activity</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div>
+    <h2 class="text-xl font-bold text-neutral-900 mb-4">Quick Actions</h2>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Upload Product -->
+      <a routerLink="/admin/upload"
+        class="p-6 bg-white border border-neutral-200 rounded-2xl shadow hover:shadow-xl transition flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-600 grid place-items-center">
+          <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 5v14"></path>
+            <path d="M5 12h14"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="font-semibold text-neutral-800">Upload Product</div>
+          <p class="text-sm text-neutral-500">Add new products</p>
+        </div>
+      </a>
+
+      <!-- Upload Slider -->
+      <a routerLink="/admin/upload-slider"
+        class="p-6 bg-white border border-neutral-200 rounded-2xl shadow hover:shadow-xl transition flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl bg-blue-100 text-blue-600 grid place-items-center">
+          <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M4 6h16"></path>
+            <path d="M4 12h16"></path>
+            <path d="M4 18h10"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="font-semibold text-neutral-800">Upload Slider</div>
+          <p class="text-sm text-neutral-500">Add homepage banners</p>
+        </div>
+      </a>
+
+      <!-- Audit Logs -->
+      <a routerLink="/admin/logs"
+        class="p-6 bg-white border border-neutral-200 rounded-2xl shadow hover:shadow-xl transition flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl bg-orange-100 text-orange-600 grid place-items-center">
+          <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M3 3h18v18H3z"></path>
+            <path d="M7 7h10"></path>
+            <path d="M7 12h10"></path>
+            <path d="M7 17h6"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="font-semibold text-neutral-800">Audit Logs</div>
+          <p class="text-sm text-neutral-500">View system activity</p>
+        </div>
+      </a>
+
+    </div>
+  </div>
 </div>

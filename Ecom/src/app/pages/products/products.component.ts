@@ -1,148 +1,137 @@
 // src/app/pages/products/products.component.ts
-import {
-  Component,
-  OnInit,
-} from '@angular/core';
+import { Component, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { ProductService } from '../../services/product.service';
 
-import { ScrollingModule } from '@angular/cdk/scrolling';
-import { debounceTime, Subject } from 'rxjs';
-
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ProductCardComponent,
-    ScrollingModule
-  ],
-  templateUrl: './products.component.html'
+  imports: [CommonModule, FormsModule, ProductCardComponent],
+  templateUrl: './products.component.html',
 })
-export class ProductsComponent implements OnInit {
+export class ProductsComponent {
 
-  // ----------------------------
-  // FILTER STATE
-  // ----------------------------
-  searchText = '';
-  selectedCategory: string = 'All';
-  sortBy: 'none' | 'low-high' | 'high-low' = 'none';
+  private productSvc = inject(ProductService);
 
-  categories: string[] = ['All'];
-  products: any[] = [];
-
-  // ----------------------------
-  // PAGINATION STATE
-  // ----------------------------
-  page = 1;
-  limit = 24;     // ideal for virtual scroll + pagination
-  total = 0;
-  totalPages = 1;
-
-  // ----------------------------
-  // SYSTEM STATES
-  // ----------------------------
-  loading = true;
-  errorMessage = '';
+  // Expose Math to the template
   Math = Math;
 
-  // Debounce search & filter
-  private filterTrigger = new Subject<void>();
+  // ----------------------------
+  // SIGNAL STATE
+  // ----------------------------
+  searchText = signal('');
+  selectedCategory = signal<string>('All');
+  sortBy = signal<'none' | 'low-high' | 'high-low'>('none');
 
-  constructor(private productSvc: ProductService) {}
+  categories = signal<string[]>(['All']);
+  products = signal<any[]>([]);
 
-  ngOnInit() {
+  // Pagination signals
+  page = signal(1);
+  limit = signal(24);
+  total = signal(0);
+  totalPages = signal(1);
+
+  // System state
+  loading = signal(true);
+  errorMessage = signal('');
+
+  // ----------------------------
+  // COMPUTED PAGINATION PAGES
+  // ----------------------------
+  pages = computed(() =>
+    Array.from({ length: this.totalPages() }, (_, i) => i + 1)
+  );
+
+  // ----------------------------
+  // AUTO-REFRESH EFFECT
+  // ----------------------------
+  constructor() {
     this.loadCategories();
-    this.loadProducts();
 
-    // Debounce 300ms for search + category change
-    this.filterTrigger
-      .pipe(debounceTime(300))
-      .subscribe(() => {
-        this.page = 1;
-        this.loadProducts();
-      });
+    effect(() => {
+      this.page();
+      this.searchText();
+      this.selectedCategory();
+      this.sortBy();
+      this.loadProducts();
+    });
   }
 
-  // ------------------------------------------------
-  // LOAD CATEGORIES (FROM /products/categories)
-  // ------------------------------------------------
+  // ----------------------------
+  // LOAD CATEGORIES
+  // ----------------------------
   loadCategories() {
     this.productSvc.getPublicCategories().subscribe({
-      next: (res: { categories: any[] }) => {
+      next: (res) => {
         const list = res?.categories || [];
-        this.categories = ['All', ...list.map(c => c.name)];
+        this.categories.set(['All', ...list.map((c: any) => c.name)]);
       },
-      error: (err) => {
-        console.warn('Failed to load categories', err?.error || err);
+      error: () => {
+        console.warn('Failed to load categories');
       }
     });
   }
 
-  // ------------------------------------------------
-  // LOAD PRODUCTS (SERVER-SIDE PAGINATION)
-  // ------------------------------------------------
+  // ----------------------------
+  // LOAD PRODUCTS
+  // ----------------------------
   loadProducts() {
-    this.loading = true;
-    this.errorMessage = '';
+    this.loading.set(true);
+    this.errorMessage.set('');
 
     const params = {
-      page: this.page,
-      limit: this.limit,
-      q: this.searchText || undefined,
-      category: this.selectedCategory !== 'All' ? this.selectedCategory : undefined,
-      sort: this.sortBy
+      page: this.page(),
+      limit: this.limit(),
+      q: this.searchText() || undefined,
+      category:
+        this.selectedCategory() !== 'All'
+          ? this.selectedCategory()
+          : undefined,
+      sort: this.sortBy(),
     };
 
     this.productSvc.getPublicProductsPaginated(params).subscribe({
-      next: (res: any) => {
-        this.products = res.products || [];
-        this.total = res.total || 0;
-        this.totalPages = res.totalPages || 1;
-        this.loading = false;
+      next: (res) => {
+        this.products.set(res.products || []);
+        this.total.set(res.total || 0);
+        this.totalPages.set(res.totalPages || 1);
+        this.loading.set(false);
       },
-      error: (err) => {
-        this.loading = false;
-        this.errorMessage = err?.error?.message || 'Failed to load products.';
-      }
+      error: () => {
+        this.loading.set(false);
+        this.errorMessage.set('Unable to load products at the moment.');
+      },
     });
   }
 
-  // ------------------------------------------------
-  // FILTER CHANGE → Debounced refresh
-  // ------------------------------------------------
+  // ----------------------------
+  // FILTER CHANGE + reset page
+  // ----------------------------
   onFilterChanged() {
-    this.filterTrigger.next();
+    this.page.set(1);
   }
 
-  // ------------------------------------------------
-  // PAGINATION HELPERS
-  // ------------------------------------------------
-  pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  }
-
-  goToPage(n: number) {
-    if (n >= 1 && n <= this.totalPages) {
-      this.page = n;
-      this.loadProducts();
+  // ----------------------------
+  // PAGINATION
+  // ----------------------------
+  goToPage(num: number) {
+    if (num >= 1 && num <= this.totalPages()) {
+      this.page.set(num);
     }
   }
 
   nextPage() {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.loadProducts();
+    if (this.page() < this.totalPages()) {
+      this.page.update(v => v + 1);
     }
   }
 
   prevPage() {
-    if (this.page > 1) {
-      this.page--;
-      this.loadProducts();
+    if (this.page() > 1) {
+      this.page.update(v => v - 1);
     }
   }
 }

@@ -1,5 +1,6 @@
-/* ================= SLIDER ANIMATIONS ================= */
+/* Home component minimal styling (no @apply usage) */
 
+/* Slider animations */
 @keyframes fadeSlideUp {
   from {
     opacity: 0;
@@ -17,4 +18,47 @@
 
 :host .animate-fade-delayed {
   animation: fadeSlideUp 1s ease-out forwards;
+}
+
+/* Rounded container helpers */
+:host .rounded-3xl {
+  border-radius: 1.5rem;
+}
+:host .shadow-xl {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Category button style (professional) */
+:host .category-btn,
+:host button[aria-label^="Browse"] {
+  background: white;
+  border: 1px solid #eef0f2;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: left;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+:host .category-btn:hover,
+:host button[aria-label^="Browse"]:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+/* Responsive image rounding for hero */
+:host img {
+  border-radius: 0.75rem;
+}
+
+/* Accessibility helpers */
+:host [aria-hidden="true"] {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Simple utility to dim disabled controls */
+:host button[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

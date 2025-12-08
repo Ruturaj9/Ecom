@@ -1,3 +1,4 @@
+// src/app/components/product-card/product-card.component.ts
 import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -9,13 +10,12 @@ import { Router } from '@angular/router';
   templateUrl: './product-card.component.html'
 })
 export class ProductCardComponent {
-
   @Input() product: any = null;
 
   router = inject(Router);
 
-  goToDetail(event?: MouseEvent) {
-    if (event) event.stopPropagation();
+  goToDetail(e?: Event) {
+    e?.stopPropagation();
     if (!this.product) return;
 
     const id = this.product._id || this.product.id;

@@ -1,88 +1,114 @@
 <div class="max-w-6xl mx-auto p-8">
 
-  <h1 class="text-3xl font-bold text-gray-800 mb-6">Contact Messages</h1>
+  <!-- TITLE -->
+  <h1 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+    📩 <span>Contact Messages</span>
+  </h1>
 
-  <!-- Loading -->
+  <!-- LOADING -->
   @if (loading()) {
-    <p class="text-gray-600">Loading messages…</p>
-  }
-
-  <!-- Error -->
-  @if (error()) {
-    <p class="text-red-600">{{ error() }}</p>
-  }
-
-  <!-- Table -->
-  @if (!loading() && messages().length > 0) {
-
-    <div class="overflow-x-auto bg-white shadow rounded-xl">
-      <table class="min-w-full text-left">
-        <thead>
-          <tr class="border-b bg-gray-50 text-gray-700">
-            <th class="p-4">Name</th>
-            <th class="p-4">Email</th>
-            <th class="p-4">Phone</th>
-            <th class="p-4">Date</th>
-            <th class="p-4 text-center">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          @for (msg of messages(); track msg._id) {
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-4">{{ msg.name }}</td>
-              <td class="p-4">{{ msg.email }}</td>
-              <td class="p-4">{{ msg.phone }}</td>
-              <td class="p-4">{{ msg.createdAt | date:'medium' }}</td>
-
-              <td class="p-4 flex justify-center gap-3">
-                <button
-                  class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  (click)="openView(msg)">
-                  View
-                </button>
-
-                <button
-                  class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  (click)="deleteMessage(msg._id)">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-
-      </table>
+    <div class="flex items-center gap-3 text-gray-600">
+      <span class="animate-spin h-5 w-5 border-2 border-gray-300 border-t-transparent rounded-full"></span>
+      Loading messages…
     </div>
   }
 
-  <!-- No Messages -->
+  <!-- ERROR -->
+  @if (error()) {
+    <p class="text-red-600 font-medium">{{ error() }}</p>
+  }
+
+  <!-- TABLE -->
+  @if (!loading() && messages().length > 0) {
+
+    <div class="overflow-hidden rounded-xl shadow border border-gray-200 bg-white">
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left">
+
+          <thead>
+            <tr class="bg-gray-100 text-gray-700 border-b text-sm">
+              <th class="p-4 font-semibold">Name</th>
+              <th class="p-4 font-semibold">Email</th>
+              <th class="p-4 font-semibold">Phone</th>
+              <th class="p-4 font-semibold">Date</th>
+              <th class="p-4 text-center font-semibold">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody class="text-sm text-gray-700">
+            @for (msg of messages(); track msg._id) {
+
+              <tr class="border-b hover:bg-gray-50 transition">
+                <td class="p-4 font-medium">{{ msg.name }}</td>
+                <td class="p-4">{{ msg.email }}</td>
+                <td class="p-4">{{ msg.phone }}</td>
+                <td class="p-4 text-gray-600">
+                  {{ msg.createdAt | date:'medium' }}
+                </td>
+
+                <td class="p-4 flex justify-center gap-3">
+
+                  <button
+                    class="px-3 py-1.5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition text-sm"
+                    (click)="openView(msg)">
+                    View
+                  </button>
+
+                  <button
+                    class="px-3 py-1.5 bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition text-sm"
+                    (click)="deleteMessage(msg._id)">
+                    Delete
+                  </button>
+
+                </td>
+              </tr>
+
+            }
+          </tbody>
+
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- EMPTY STATE -->
   @if (!loading() && messages().length === 0) {
-    <p class="text-gray-500 mt-4">No messages found.</p>
+    <div class="text-center py-20 text-gray-500">
+      <div class="text-5xl mb-3">📭</div>
+      <p class="text-lg font-medium">No messages found</p>
+      <p class="text-sm text-gray-400 mt-1">New contact messages will appear here.</p>
+    </div>
   }
 
   <!-- MODAL -->
   @if (viewMessage) {
 
-    <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-6">
-      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg">
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+      <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg animate-[fadeIn_.25s_ease-out]">
 
-        <h2 class="text-xl font-semibold mb-4">Message Details</h2>
+        <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+          <span>📨</span> Message Details
+        </h2>
 
-        <div class="space-y-2">
+        <div class="space-y-3 text-gray-700">
+
           <p><strong>Name:</strong> {{ viewMessage.name }}</p>
           <p><strong>Email:</strong> {{ viewMessage.email }}</p>
           <p><strong>Phone:</strong> {{ viewMessage.phone }}</p>
+
           <p><strong>Message:</strong></p>
-          <p class="bg-gray-100 p-3 rounded">{{ viewMessage.message }}</p>
-          <p class="text-sm text-gray-500 mt-2">
-            Submitted {{ viewMessage.createdAt | date:'medium' }}
+          <p class="bg-gray-100 p-3 rounded-lg text-gray-800 leading-relaxed">
+            {{ viewMessage.message }}
+          </p>
+
+          <p class="text-xs text-gray-500 pt-2">
+            Submitted: {{ viewMessage.createdAt | date:'medium' }}
           </p>
         </div>
 
         <div class="mt-6 flex justify-end">
           <button
-            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            class="px-5 py-2 bg-gray-200 rounded-lg text-gray-800 font-medium hover:bg-gray-300 transition"
             (click)="closeView()">
             Close
           </button>

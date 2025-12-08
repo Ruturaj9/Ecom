@@ -1,7 +1,14 @@
-<div class="max-w-7xl mx-auto px-4 py-10">
+<div class="max-w-7xl mx-auto px-4 py-10 relative">
 
-  <!-- LOADING STATE -->
-  @if (loading) {
+  <!-- transient toast -->
+  @if (toast()) {
+    <div class="fixed top-6 right-6 bg-emerald-600 text-white px-4 py-2 rounded shadow z-40">
+      {{ toast() }}
+    </div>
+  }
+
+  <!-- LOADING SKELETON -->
+  @if (loading()) {
     <div class="animate-pulse space-y-6">
       <div class="h-6 w-40 bg-gray-200 rounded"></div>
 
@@ -19,78 +26,53 @@
     </div>
   }
 
-  <!-- NOT FOUND -->
-  @if (!loading && !product) {
-    <p class="text-red-600 text-xl font-semibold">Product not found.</p>
-
-    <button routerLink="/products"
-      class="mt-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
-      ← Back to Products
-    </button>
+  <!-- ERROR / NOT FOUND -->
+  @if (!loading() && errorMessage()) {
+    <div class="text-red-600 text-xl font-semibold mb-4">{{ errorMessage() }}</div>
+    <button routerLink="/products" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">← Back to products</button>
   }
 
   <!-- PRODUCT DETAILS -->
-  @if (!loading && product) {
-
-    <button routerLink="/products"
-      class="mb-6 px-4 py-2 border rounded-lg hover:bg-gray-100 transition">
-      ← Back to Products
-    </button>
+  @if (!loading() && product()) {
+    <button routerLink="/products" class="mb-6 px-4 py-2 border rounded-lg hover:bg-gray-100 transition">← Back to Products</button>
 
     <div class="grid md:grid-cols-2 gap-10">
 
-      <!-- PRODUCT IMAGE -->
+      <!-- IMAGE -->
       <div class="flex justify-center items-start">
         <img
-          [src]="product.images?.[0]"
+          loading="lazy"
+          [src]="(product().images?.[0] || product().imageUrl) ? optimizeImage(product().images?.[0] || product().imageUrl, 900) : 'https://via.placeholder.com/900x600?text=No+Image'"
           class="w-full max-w-xl rounded-xl shadow-lg border"
-          alt="{{ product.title }}"
+          alt="{{ product().title }}"
         />
       </div>
 
-      <!-- PRODUCT INFORMATION -->
+      <!-- INFO -->
       <div class="space-y-5">
+        <h1 class="text-3xl font-bold text-gray-900">{{ product().title }}</h1>
 
-        <h1 class="text-3xl font-bold text-gray-900">
-          {{ product.title }}
-        </h1>
+        <div class="text-emerald-600 text-3xl font-bold">₹{{ product().price }}</div>
 
-        <div class="text-green-600 text-3xl font-bold">
-          ₹{{ product.price }}
-        </div>
+        <p class="text-gray-700"><span class="font-semibold">Category:</span> {{ product().category?.name || '—' }}</p>
 
-        <p class="text-gray-700">
-          <span class="font-semibold">Category:</span>
-          {{ product.category?.name || '—' }}
-        </p>
-
-        <p class="text-gray-600 leading-7">
-          {{ product.description || 'No description available.' }}
-        </p>
+        <p class="text-gray-600 leading-7">{{ product().description || 'No description available.' }}</p>
 
         <div class="flex gap-4 pt-4">
-          <button
-            class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow transition">
-            Contact Seller
-          </button>
+          <button class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">Contact Seller</button>
 
-          <button
-            (click)="addToCart()"
-            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow transition">
-            Add to Cart
-          </button>
+          <button (click)="addToCart()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Add to Cart</button>
         </div>
-
       </div>
     </div>
 
-    <!-- SIMILAR PRODUCTS -->
-    @if (similarProducts.length > 0) {
+    <!-- SIMILAR PRODUCTS (max 4) -->
+    @if (similarProducts().length > 0) {
       <div class="mt-14">
         <h2 class="text-2xl font-bold mb-4">Similar Products</h2>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          @for (p of similarProducts; track p._id) {
+          @for (p of similarProducts(); track p._id) {
             <app-product-card [product]="p"></app-product-card>
           }
         </div>

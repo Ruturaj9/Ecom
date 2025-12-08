@@ -1,5 +1,138 @@
-<h2 class="text-xl font-semibold">Audit Logs</h2>
+<div class="max-w-6xl mx-auto p-8">
 
-<p class="text-gray-600 mt-2">
-  (Backend endpoint ready — UI coming soon.)
-</p>
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Audit Logs</h1>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <p class="text-gray-600">Loading logs…</p>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <p class="text-red-600">{{ error() }}</p>
+  }
+
+  <!-- Logs Table -->
+  @if (!loading() && logs().length > 0) {
+
+    <div class="overflow-x-auto bg-white shadow rounded-xl">
+      <table class="min-w-full text-left">
+        <thead>
+          <tr class="border-b bg-gray-50 text-gray-700">
+            <th class="p-4">Action</th>
+            <th class="p-4">Section</th>
+            <th class="p-4">Admin</th>
+            <th class="p-4">IP Address</th>
+            <th class="p-4">Date</th>
+            <th class="p-4 text-center">Details</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          @for (log of logs(); track log._id) {
+
+            <tr class="border-b hover:bg-gray-50">
+
+              <!-- ACTION TAG -->
+              <td class="p-4">
+                <span class="px-2 py-1 text-xs rounded font-semibold"
+                    [ngClass]="{
+                      'bg-green-100 text-green-700': log.action.startsWith('PRODUCT'),
+                      'bg-blue-100 text-blue-700': log.action.startsWith('SLIDER'),
+                      'bg-amber-100 text-amber-700': log.action.startsWith('AUTH'),
+                      'bg-purple-100 text-purple-700': log.action.startsWith('CONTACT'),
+                      'bg-gray-200 text-gray-700': true
+                    }">
+                  {{ extractActionType(log.action) }}
+                </span>
+                <div class="text-sm mt-1 text-gray-700">
+                  {{ extractActionMessage(log.action) }}
+                </div>
+              </td>
+
+              <!-- SECTION -->
+              <td class="p-4 text-gray-800">
+                {{ detectSection(log.action) }}
+              </td>
+
+              <!-- ADMIN -->
+              <td class="p-4">{{ log.admin }}</td>
+
+              <!-- IP -->
+              <td class="p-4">{{ log.ip || 'N/A' }}</td>
+
+              <!-- DATE -->
+              <td class="p-4">{{ log.createdAt | date:'medium' }}</td>
+
+              <!-- DETAILS BUTTON -->
+              <td class="p-4 text-center">
+                <button
+                  class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  (click)="openView(log)">
+                  View
+                </button>
+              </td>
+
+            </tr>
+
+          }
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-6">
+
+      <button
+        (click)="prevPage()"
+        [disabled]="page() === 1"
+        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-40">
+        Previous
+      </button>
+
+      <p class="text-sm text-gray-600">
+        Page {{ page() }} of {{ totalPages() }}
+      </p>
+
+      <button
+        (click)="nextPage()"
+        [disabled]="page() === totalPages()"
+        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-40">
+        Next
+      </button>
+
+    </div>
+
+  }
+
+  <!-- Empty -->
+  @if (!loading() && logs().length === 0) {
+    <p class="text-gray-500 mt-4">No logs found.</p>
+  }
+
+  <!-- MODAL VIEW -->
+  @if (viewLog) {
+    <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-6">
+      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg">
+
+        <h2 class="text-xl font-semibold mb-4">Action Details</h2>
+
+        <div class="space-y-2">
+          <p><strong>Action:</strong> {{ extractActionMessage(viewLog.action) }}</p>
+          <p><strong>Section:</strong> {{ detectSection(viewLog.action) }}</p>
+          <p><strong>Admin:</strong> {{ viewLog.admin }}</p>
+          <p><strong>IP Address:</strong> {{ viewLog.ip }}</p>
+          <p><strong>Date:</strong> {{ viewLog.createdAt | date:'medium' }}</p>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" (click)="closeView()">Close</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

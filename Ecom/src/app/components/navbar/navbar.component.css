@@ -1,16 +1,40 @@
 .nav-link {
-  @apply text-zinc-700 text-sm font-medium hover:text-emerald-600 transition relative;
+  color: #404040;
+  font-size: 0.875rem;
+  font-weight: 500;
+  position: relative;
+  transition: 0.2s ease;
 }
+
+.nav-link:hover {
+  color: #059669;
+}
+
 .nav-link::after {
-  content: '';
-  @apply absolute left-0 -bottom-1 w-0 h-0.5 bg-emerald-600 transition-all duration-300;
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 2px;
+  width: 0;
+  background: #059669;
+  transition: width 0.3s ease;
 }
+
 .nav-link:hover::after {
-  @apply w-full;
+  width: 100%;
 }
 
 .mobile-link {
-  @apply block text-zinc-700 text-base font-medium hover:text-emerald-600 transition;
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #404040;
+  transition: 0.2s ease;
+}
+
+.mobile-link:hover {
+  color: #059669;
 }
 
 .animate-fadeIn {
