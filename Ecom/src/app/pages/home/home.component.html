@@ -4,21 +4,20 @@
 <section class="relative w-full select-none">
   <div class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- Loading -->
     @if (sliderLoading()) {
       <div class="h-64 md:h-[430px] flex items-center justify-center">
-        <div class="animate-pulse text-neutral-500">Loading homepage visuals…</div>
+        <div class="animate-pulse text-neutral-500">
+          Loading homepage visuals…
+        </div>
       </div>
     }
 
-    <!-- Error -->
     @if (sliderError()) {
       <div class="h-64 md:h-[430px] flex items-center justify-center">
         <div class="text-red-600">{{ sliderError() }}</div>
       </div>
     }
 
-    <!-- Slider -->
     @if (sliders().length > 0) {
       <div
         class="relative rounded-3xl overflow-hidden h-64 md:h-[430px] shadow-xl group"
@@ -26,6 +25,7 @@
         (touchmove)="onTouchMove($event)"
         (touchend)="onTouchEnd()"
       >
+
         @for (slide of sliders(); track slide._id; let i = $index) {
           <div
             class="absolute inset-0 transition-opacity duration-700 ease-in-out"
@@ -36,14 +36,14 @@
             <div
               class="absolute inset-0 bg-center bg-cover"
               [style.background-image]="'url(' + getImage(slide) + ')'"
-              role="img"
-              [attr.aria-label]="slide.title ?? 'Promotional slide'"
             ></div>
 
             <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
 
             <div class="absolute inset-y-0 left-10 flex flex-col justify-center max-w-xl text-white p-6">
-              <h2 class="text-3xl md:text-5xl font-extrabold animate-fade-slide">{{ slide.title }}</h2>
+              <h2 class="text-3xl md:text-5xl font-extrabold animate-fade-slide">
+                {{ slide.title }}
+              </h2>
 
               @if (slide.subtitle) {
                 <p class="mt-3 text-lg md:text-xl text-white/90 animate-fade-delayed">
@@ -55,7 +55,6 @@
                 <button
                   class="mt-6 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-full font-semibold shadow-lg transition"
                   (click)="go(slide)"
-                  aria-label="Open {{ slide.buttonText }}"
                 >
                   {{ slide.buttonText }}
                 </button>
@@ -64,20 +63,18 @@
           </div>
         }
 
-        <!-- Prev / Next -->
+        <!-- arrows -->
         <button
           class="absolute top-1/2 -translate-y-1/2 left-4 bg-white/90 hover:bg-white shadow-lg p-3 rounded-full opacity-0 group-hover:opacity-100 transition z-20"
           (click)="prev()"
-          aria-label="Previous slide"
         >‹</button>
 
         <button
           class="absolute top-1/2 -translate-y-1/2 right-4 bg-white/90 hover:bg-white shadow-lg p-3 rounded-full opacity-0 group-hover:opacity-100 transition z-20"
           (click)="next()"
-          aria-label="Next slide"
         >›</button>
 
-        <!-- Dots -->
+        <!-- dots -->
         <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-3 z-20">
           @for (s of sliders(); track s._id; let i = $index) {
             <button
@@ -85,7 +82,6 @@
               class="w-3 h-3 rounded-full border border-white/70 cursor-pointer"
               [class.bg-white]="currentSlide === i"
               [class.bg-white/40]="currentSlide !== i"
-              aria-label="Go to slide {{ i + 1 }}"
             ></button>
           }
         </div>
@@ -94,7 +90,7 @@
   </div>
 </section>
 
-<!-- ================= HERO (informational) ================= -->
+<!-- ================= HERO ================= -->
 <section class="bg-green-50">
   <div class="max-w-7xl mx-auto px-4 py-12 lg:py-20">
     <div class="grid md:grid-cols-2 gap-8 items-center">
@@ -110,13 +106,17 @@
       </div>
 
       <div class="hidden md:block">
-        <img src="https://picsum.photos/seed/farm/800/600" class="rounded-2xl shadow-lg" alt="Fresh farm produce" />
+        <img
+          src="https://picsum.photos/seed/farm/800/600"
+          class="rounded-2xl shadow-lg"
+          alt="Fresh farm produce"
+        />
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================= CATEGORIES (professional names only) ================= -->
+<!-- ================= CATEGORIES ================= -->
 <section class="py-10">
   <div class="max-w-7xl mx-auto px-4">
     <div class="flex items-center justify-between">
@@ -126,22 +126,15 @@
         <div class="text-sm text-neutral-500">Loading categories…</div>
       } @else if (categoryError()) {
         <div class="text-sm text-red-600">{{ categoryError() }}</div>
-      } @else {
-        <div class="text-sm text-neutral-600">Choose a category to browse curated products</div>
       }
     </div>
 
-    @if ((categories() || []).length === 0 && !categoryLoading() && !categoryError()) {
-      <div class="mt-6 text-neutral-500">No categories available at this time.</div>
-    }
-
-    @if ((categories() || []).length > 0) {
+    @if (categories().length > 0) {
       <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-        @for (c of categories(); track c; let i = $index) {
+        @for (c of categories(); track c) {
           <button
             (click)="goToCategory(c?.name ?? c)"
-            class="w-full text-left bg-white p-3 rounded-lg border hover:shadow-md transition text-sm font-medium text-neutral-800"
-            aria-label="Browse {{ c?.name ?? c }}"
+            class="w-full text-left bg-white p-3 rounded-lg border hover:shadow-md transition text-sm font-medium"
           >
             {{ c?.name ?? c }}
           </button>
@@ -151,46 +144,124 @@
   </div>
 </section>
 
-<!-- ================= FEATURED PRODUCTS (paginated) ================= -->
+<!-- ================= FEATURED PRODUCTS ================= -->
 <section class="py-10 bg-neutral-50">
   <div class="max-w-7xl mx-auto px-4">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-2xl font-bold">Featured Products</h2>
 
       <div class="flex items-center gap-4">
-        <div class="text-sm text-neutral-600">Page {{ currentPage() }} of {{ totalPages() }}</div>
-        <div class="flex items-center gap-2">
-          <button
-            (click)="prevPage()"
-            [disabled]="currentPage() <= 1"
-            class="px-3 py-1 rounded border disabled:opacity-50"
-            aria-label="Previous page"
-          >Prev</button>
+        <span class="text-sm text-neutral-600">
+          Page {{ currentPage() }} of {{ totalPages() }}
+        </span>
 
-          <button
-            (click)="nextPage()"
-            [disabled]="currentPage() >= totalPages()"
-            class="px-3 py-1 rounded border disabled:opacity-50"
-            aria-label="Next page"
-          >Next</button>
-        </div>
+        <button (click)="prevPage()" [disabled]="currentPage() <= 1">Prev</button>
+        <button (click)="nextPage()" [disabled]="currentPage() >= totalPages()">Next</button>
       </div>
     </div>
 
-    <!-- Loading / Error / Content -->
-    @if (productLoading()) {
-      <div class="mt-6 text-neutral-500">Loading featured products…</div>
-      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        <div class="h-44 rounded-xl bg-white animate-pulse" *ngFor="let _ of [1,2,3,4]"></div>
-      </div>
-    } @else if (productError()) {
-      <div class="mt-6 text-red-600">{{ productError() }}</div>
-    } @else {
-      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+    @if (!productLoading()) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         @for (p of featured(); track p._id ?? $index) {
           <app-product-card [product]="p"></app-product-card>
         }
       </div>
+    }
+  </div>
+</section>
+
+<!-- ================= VIDEO REELS ================= -->
+<section class="py-16 bg-neutral-50">
+  <div class="max-w-7xl mx-auto px-4 relative">
+
+    <h2 class="text-3xl font-extrabold mb-10 text-center">
+      From Our Farmers
+    </h2>
+
+    @if (videoLoading()) {
+      <div class="h-64 flex items-center justify-center text-neutral-500 animate-pulse">
+        Loading videos…
+      </div>
+    }
+
+    @if (videoSliders().length > 0) {
+
+      <!-- LEFT -->
+      <button
+        aria-label="Scroll videos left"
+        class="absolute left-2 top-1/2 -translate-y-1/2 z-20
+               bg-white/90 hover:bg-white shadow-lg
+               w-10 h-10 rounded-full flex items-center justify-center transition"
+        (click)="scrollVideoGridLeft(videoGrid)"
+      >‹</button>
+
+      <!-- GRID -->
+      <div
+        #videoGrid
+        class="video-auto-scroll flex gap-6 overflow-x-auto pb-6 px-2 snap-x snap-mandatory scrollbar-hide"
+        (mouseenter)="pauseVideoAutoScroll()"
+        (mouseleave)="resumeVideoAutoScroll()"
+      >
+        @for (v of videoSliders(); track v._id; let i = $index) {
+          <div
+            class="relative snap-start w-[260px] sm:w-[280px] md:w-[300px] lg:w-[22%]
+                   aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-md
+                   group transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl"
+          >
+            <video
+              class="w-full h-full object-cover"
+              playsinline
+              preload="metadata"
+              controls
+              [muted]="isMuted(i)"
+              [attr.poster]="v.thumbnail || null"
+              [attr.data-video-index]="i"
+              [attr.data-observe-video]="true"
+              (click)="toggleVideo(i)"
+            >
+              <source [src]="getVideo(v)" type="video/mp4" />
+            </video>
+
+            <!-- progress -->
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
+              <div
+                class="h-full bg-green-500"
+                [style.width.%]="getProgress(i)"
+                style="transition: width 180ms cubic-bezier(0.34,1.56,0.64,1);"
+              ></div>
+            </div>
+
+            <!-- mute -->
+            <button
+              class="absolute top-3 right-3 w-9 h-9 rounded-full
+                     bg-black/60 text-white flex items-center justify-center
+                     opacity-0 group-hover:opacity-100 transition"
+              (click)="$event.stopPropagation(); toggleMute(i)"
+            >
+              {{ isMuted(i) ? '🔇' : '🔊' }}
+            </button>
+
+            <!-- play -->
+            <div
+              class="absolute inset-0 flex items-center justify-center
+                     text-white text-5xl opacity-0 group-hover:opacity-100
+                     transition pointer-events-none"
+            >
+              {{ isPlaying(i) ? '❚❚' : '▶' }}
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- RIGHT -->
+      <button
+        aria-label="Scroll videos right"
+        class="absolute right-2 top-1/2 -translate-y-1/2 z-20
+               bg-white/90 hover:bg-white shadow-lg
+               w-10 h-10 rounded-full flex items-center justify-center transition"
+        (click)="scrollVideoGridRight(videoGrid)"
+      >›</button>
+
     }
   </div>
 </section>

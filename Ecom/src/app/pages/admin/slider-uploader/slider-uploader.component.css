@@ -1,0 +1,31 @@
+/* Prevent the giant stretched preview */
+.cdk-drag-preview {
+  padding: 0;
+  margin: 0;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  transform: scale(0.95);
+  overflow: hidden !important;
+}
+
+/* Hide internal form fields inside drag preview */
+.cdk-drag-preview input,
+.cdk-drag-preview button,
+.cdk-drag-preview label,
+.cdk-drag-preview div {
+  pointer-events: none !important;
+}
+
+/* Smooth motion */
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Prevent layout shift while dragging */
+.cdk-drag-placeholder {
+  opacity: 0.5;
+  border: 2px dashed #93c5fd;
+  border-radius: 12px;
+  height: 140px;
+}

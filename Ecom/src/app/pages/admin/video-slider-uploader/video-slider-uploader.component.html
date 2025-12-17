@@ -1,0 +1,163 @@
+<div class="max-w-5xl mx-auto px-6 py-10">
+
+  <!-- PAGE HEADER -->
+  <div class="mb-10">
+    <h2 class="text-3xl font-extrabold text-gray-800">
+      Video Slider Upload
+    </h2>
+    <p class="text-sm text-gray-500 mt-1">
+      Upload a single promotional video for the homepage slider.
+    </p>
+  </div>
+
+  <!-- UPLOAD CARD -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-6 space-y-6 shadow-sm">
+
+    <h3 class="text-lg font-semibold text-gray-700">
+      Media Upload
+    </h3>
+
+    <!-- VIDEO INPUT -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-600">
+        Video File <span class="text-red-500">*</span>
+      </label>
+
+      <label
+        class="flex items-center justify-center w-full h-32 border-2 border-dashed rounded-xl
+               cursor-pointer transition
+               border-gray-300 hover:border-green-500 hover:bg-green-50"
+      >
+        <span class="text-sm text-gray-500">
+          Click to select a video file
+        </span>
+
+        <input
+          type="file"
+          accept="video/*"
+          class="hidden"
+          (change)="onVideoSelected($event)"
+        />
+      </label>
+    </div>
+
+    <!-- THUMBNAIL INPUT -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-600">
+        Thumbnail (Optional)
+      </label>
+
+      <label
+        class="flex items-center justify-center w-full h-24 border-2 border-dashed rounded-xl
+               cursor-pointer transition
+               border-gray-300 hover:border-green-500 hover:bg-green-50"
+      >
+        <span class="text-sm text-gray-500">
+          Click to select an image
+        </span>
+
+        <input
+          type="file"
+          accept="image/*"
+          class="hidden"
+          (change)="onThumbnailSelected($event)"
+        />
+      </label>
+    </div>
+
+    <p class="text-xs text-gray-400">
+      Supported formats: MP4, WebM. Thumbnail is optional.
+    </p>
+  </div>
+
+  <!-- PREVIEW CARD -->
+  @if (previewVideoUrl) {
+    <div class="mt-10 bg-white border border-gray-200 rounded-2xl shadow overflow-hidden">
+
+      <!-- VIDEO PREVIEW -->
+      <video
+        class="w-full h-72 object-cover bg-black"
+        muted
+        controls
+        preload="metadata"
+      >
+        <source [src]="previewVideoUrl" type="video/mp4" />
+      </video>
+
+      <!-- DETAILS -->
+      <div class="p-6 space-y-4">
+
+        <!-- ✅ THUMBNAIL PREVIEW (ADDED) -->
+        @if (previewThumbnailUrl) {
+          <div class="flex items-center gap-4">
+            <img
+              [src]="previewThumbnailUrl"
+              alt="Thumbnail preview"
+              class="w-40 h-24 object-cover rounded-lg border"
+            />
+            <span class="text-sm text-gray-500">
+              Thumbnail preview
+            </span>
+          </div>
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+            placeholder="Title"
+            [(ngModel)]="title"
+          />
+
+          <input
+            class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+            placeholder="Subtitle"
+            [(ngModel)]="subtitle"
+          />
+        </div>
+
+        <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+          <input
+            type="checkbox"
+            class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+            [(ngModel)]="active"
+          />
+          Active on homepage
+        </label>
+
+        <button
+          type="button"
+          class="text-sm text-red-600 hover:underline cursor-pointer"
+          (click)="reset()"
+        >
+          Remove video
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ACTION BAR -->
+  <div class="mt-8 flex items-center gap-5">
+
+    <button
+      class="px-6 py-2.5 rounded-lg font-medium text-white transition
+             bg-green-600 hover:bg-green-700
+             disabled:bg-gray-300 disabled:cursor-not-allowed"
+      [disabled]="saving || !previewVideoUrl"
+      (click)="save()"
+    >
+      {{ saving ? 'Saving…' : 'Save Video' }}
+    </button>
+
+    <!-- STATUS MESSAGE -->
+    @if (message) {
+      <span
+        class="text-sm"
+        [class.text-green-600]="message.includes('success')"
+        [class.text-red-600]="!message.includes('success')"
+      >
+        {{ message }}
+      </span>
+    }
+  </div>
+
+</div>

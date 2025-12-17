@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { ProductService } from '../../../services/product.service';
 
 @Component({
@@ -22,7 +23,10 @@ export class ProductListComponent implements OnInit {
 
   Math = Math;
 
-  constructor(private productSvc: ProductService) {}
+  constructor(
+    private productSvc: ProductService,
+    private router: Router            // ✔ FIX: Inject Router
+  ) {}
 
   ngOnInit() {
     this.loadProducts();
@@ -71,8 +75,9 @@ export class ProductListComponent implements OnInit {
     }
   }
 
+  // ✔ EDIT NOW WORKS, ROUTES TO EDIT PAGE
   editProduct(id: string) {
-    alert('Edit product coming soon: ' + id);
+    this.router.navigate(['/admin/products/edit', id]);
   }
 
   deleteProduct(id: string) {

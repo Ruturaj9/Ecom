@@ -184,15 +184,15 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
 
       @for (p of [
-        { img: 'zepto.png', name: 'Zepto' },
-        { img: 'tatastar.png', name: 'Tata Star' },
-        { img: 'kisankonnect.png', name: 'Kisan Konnect' },
-        { img: 'swiggy.png', name: 'Swiggy' },
-        { img: 'amazon.png', name: 'Amazon' },
-        { img: 'bigbasket.png', name: 'Bigbasket' },
-        { img: 'reliance.png', name: 'Reliance' },
-        { img: 'vegrow.png', name: 'Vegrow' },
-        { img: 'shtayushi.png', name: 'Shtayushi Organic' },
+        { img: 'zepto.svg', name: 'Zepto' },
+        { img: 'tata-star.svg', name: 'Tata Star' },
+        { img: 'kisan-konnect.svg', name: 'Kisan Konnect' },
+        { img: 'swiggy.svg', name: 'Swiggy' },
+        { img: 'amazon.svg', name: 'Amazon' },
+        { img: 'bigbasket.svg', name: 'Bigbasket' },
+        { img: 'reliance.svg', name: 'Reliance' },
+        { img: 'vegrow.webp', name: 'Vegrow' },
+        { img: 'shtayushi-organic.png', name: 'Shtayushi Organic' },
       ]; track p.name) {
         <div class="bg-white p-4 rounded-xl shadow-sm text-center hover:shadow-lg transition-all">
           <img [src]="p.img" class="h-14 mx-auto mb-2 object-contain" loading="lazy">

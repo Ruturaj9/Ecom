@@ -1,0 +1,23 @@
+:host {
+  display: block;
+}
+
+input,
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+button[type="button"] {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+input:focus {
+  outline: none;
+}
+
+.transition-all {
+  transition: all 0.2s ease;
+}

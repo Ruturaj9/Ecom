@@ -1,26 +1,30 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
   <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
 
-    <!-- Header -->
-    <h2 class="text-3xl font-extrabold text-center text-emerald-700 mb-6">
+    <!-- HEADER -->
+    <h2 class="text-3xl font-extrabold text-center text-emerald-700 mb-2">
       Welcome Back
     </h2>
-    <p class="text-center text-gray-600 mb-8">
-      Login to your account
-    </p>
+    <p class="text-center text-gray-600 mb-6">Login to your account</p>
 
     <!-- FORM -->
-    <div class="space-y-5">
+    <form (ngSubmit)="login()" class="space-y-5" autocomplete="on">
 
       <!-- Email -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input
           [(ngModel)]="email"
-          placeholder="Enter email"
+          name="email"
+          type="email"
+          placeholder="you@example.com"
           class="w-full p-3 border rounded-xl focus:ring-2 ring-emerald-500 outline-none"
+          autocomplete="email"
         />
-        <p class="text-xs text-red-600 mt-1" *ngIf="emailError">{{ emailError }}</p>
+
+        @if (emailError) {
+          <p class="text-xs text-red-600 mt-1">{{ emailError }}</p>
+        }
       </div>
 
       <!-- Password -->
@@ -28,24 +32,31 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
         <input
           [(ngModel)]="password"
+          name="password"
           type="password"
           placeholder="Enter password"
           class="w-full p-3 border rounded-xl focus:ring-2 ring-emerald-500 outline-none"
+          autocomplete="current-password"
         />
-        <p class="text-xs text-red-600 mt-1" *ngIf="passwordError">{{ passwordError }}</p>
+
+        @if (passwordError) {
+          <p class="text-xs text-red-600 mt-1">{{ passwordError }}</p>
+        }
       </div>
 
       <!-- Forgot Password -->
       <div class="text-right">
-        <a class="text-sm text-emerald-600 hover:underline cursor-pointer"
-           (click)="forgotPassword()">
+        <button
+          type="button"
+          class="text-sm text-emerald-600 hover:underline cursor-pointer"
+          (click)="forgotPassword()">
           Forgot Password?
-        </a>
+        </button>
       </div>
 
       <!-- Login Button -->
       <button
-        (click)="login()"
+        type="submit"
         class="w-full py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 shadow-md active:scale-95 transition disabled:opacity-50"
         [disabled]="loading"
       >
@@ -53,9 +64,14 @@
       </button>
 
       <!-- Message -->
-      <div class="text-sm text-center mt-2" [class.text-red-600]="isError" [class.text-green-600]="!isError">
-        {{ message }}
-      </div>
+      @if (message) {
+        <div
+          class="text-sm text-center mt-2"
+          [class.text-red-600]="isError"
+          [class.text-green-600]="!isError">
+          {{ message }}
+        </div>
+      }
 
       <!-- Divider -->
       <div class="flex items-center gap-4 my-4">
@@ -64,13 +80,14 @@
         <div class="flex-1 h-px bg-gray-300"></div>
       </div>
 
-      <!-- Signup Link -->
+      <!-- Create Account -->
       <p class="text-center text-sm text-gray-700">
-        Don't have an account?
+        Don’t have an account?
         <a routerLink="/register" class="text-emerald-600 font-semibold hover:underline">
           Create Account
         </a>
       </p>
-    </div>
+
+    </form>
   </div>
 </div>

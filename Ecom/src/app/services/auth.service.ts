@@ -111,4 +111,92 @@ export class AuthService {
       map(() => this.checkAdmin(this.userSubject.value))
     );
   }
+
+  // ------------------------------------------------------------------
+  // Added methods (only these are appended; existing logic unchanged)
+  // ------------------------------------------------------------------
+
+  // ---------------------------------------------------
+  // REGISTER USER
+  // ---------------------------------------------------
+  register(data: { name: string; email: string; password: string; mobile?: string }) {
+    return this.http.post(
+      `${this.baseUrl}/auth/register`,
+      data,
+      {
+        withCredentials: true,
+        headers: this.csrfToken ? { 'X-CSRF-Token': this.csrfToken } : {}
+      }
+    );
+  }
+
+  // ---------------------------------------------------
+  // VERIFY MOBILE OTP  (Optional if your backend supports it)
+  // ---------------------------------------------------
+  verifyOtp(otpToken: string, code: string) {
+    return this.http.post(
+      `${this.baseUrl}/auth/verify-otp`,
+      { otpToken, code },
+      {
+        withCredentials: true,
+        headers: this.csrfToken ? { 'X-CSRF-Token': this.csrfToken } : {}
+      }
+    );
+  }
+
+  // ---------------------------------------------------
+  // RESEND MOBILE OTP (Optional)
+  // ---------------------------------------------------
+  resendOtp(otpToken: string) {
+    return this.http.post(
+      `${this.baseUrl}/auth/resend-otp`,
+      { otpToken },
+      {
+        withCredentials: true,
+        headers: this.csrfToken ? { 'X-CSRF-Token': this.csrfToken } : {}
+      }
+    );
+  }
+
+  // ---------------------------------------------------
+  // RESEND EMAIL VERIFICATION
+  // ---------------------------------------------------
+  resendEmailVerification(email: string) {
+    return this.http.post(
+      `${this.baseUrl}/auth/resend-email-verification`,
+      { email },
+      {
+        withCredentials: true,
+        headers: this.csrfToken ? { 'X-CSRF-Token': this.csrfToken } : {}
+      }
+    );
+  }
+
+  // ---------------------------------------------------
+  // FORGOT PASSWORD (request email link)
+  // ---------------------------------------------------
+  forgotPassword(email: string) {
+    return this.http.post(
+      `${this.baseUrl}/auth/forgot-password`,
+      { email },
+      {
+        withCredentials: true,
+        headers: this.csrfToken ? { 'X-CSRF-Token': this.csrfToken } : {}
+      }
+    );
+  }
+
+  // ---------------------------------------------------
+  // RESET PASSWORD (with emailed token)
+  // ---------------------------------------------------
+  resetPassword(token: string, password: string) {
+    return this.http.post(
+      `${this.baseUrl}/auth/reset-password`,
+      { token, password },
+      {
+        withCredentials: true,
+        headers: this.csrfToken ? { 'X-CSRF-Token': this.csrfToken } : {}
+      }
+    );
+  }
 }

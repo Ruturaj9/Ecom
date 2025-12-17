@@ -15,7 +15,6 @@ import { ProductService } from '../../services/product.service';
 export class NavbarComponent implements OnInit {
   mobileOpen = false;
 
-  // dynamic categories from backend
   categories = signal<string[]>([]);
   categoriesLoading = signal<boolean>(true);
 
@@ -36,9 +35,7 @@ export class NavbarComponent implements OnInit {
 
     this.productService.getPublicCategories().subscribe({
       next: (res) => {
-        const list =
-          res?.categories?.map((c: any) => c.name) ?? [];
-
+        const list = res?.categories?.map((c: any) => c.name) ?? [];
         this.categories.set(list);
         this.categoriesLoading.set(false);
       },
@@ -75,10 +72,13 @@ export class NavbarComponent implements OnInit {
   navigateWithFragment(path: string, fragment: string) {
     this.mobileOpen = false;
 
-    this.router
-      .navigate([path], { skipLocationChange: true })
-      .then(() => {
-        this.router.navigate([path], { fragment });
-      });
+    this.router.navigate([path], { skipLocationChange: true }).then(() => {
+      this.router.navigate([path], { fragment });
+    });
+  }
+
+  // ⭐ NEW → Login Redirect
+  goToLogin() {
+    this.router.navigate(['/login']);
   }
 }

@@ -41,7 +41,6 @@
 
     </div>
 
-    <!-- Status Message -->
     @if (message) {
       <p class="mt-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
         {{ message }}
@@ -49,7 +48,6 @@
     }
   </section>
 
-  <!-- SLIDE PREVIEW LIST -->
   @if (previews.length > 0) {
 
     <section class="space-y-6">
@@ -59,9 +57,24 @@
 
         @for (p of previews; let i = $index; track i) {
 
-          <div cdkDrag class="bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition">
+          <div
+            cdkDrag
+            class="bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition relative">
+
+            <!-- Custom drag preview -->
+            <ng-template cdkDragPreview>
+              <div class="bg-white border rounded-xl p-3 shadow-lg w-64">
+                <img [src]="getImage(p)" class="w-full h-32 object-cover rounded-lg" />
+                <p class="text-sm font-medium mt-2">{{ p.title || 'Slide' }}</p>
+              </div>
+            </ng-template>
 
             <div class="flex gap-5">
+
+              <!-- DRAG HANDLE -->
+              <div cdkDragHandle class="cursor-grab pr-2 select-none text-gray-400 hover:text-gray-600">
+                ⋮⋮
+              </div>
 
               <!-- Image Preview -->
               <img
@@ -84,7 +97,6 @@
                     class="w-full px-3 py-2 border rounded-lg focus:ring focus:outline-none" />
                 </div>
 
-                <!-- Button Section -->
                 <div class="grid grid-cols-2 gap-3">
                   <div>
                     <label class="text-xs text-gray-500">Button Text</label>
@@ -99,13 +111,11 @@
                   </div>
                 </div>
 
-                <!-- Active Checkbox -->
                 <div class="flex items-center gap-2">
                   <input type="checkbox" class="w-4 h-4" [(ngModel)]="p.active" />
                   <label class="text-sm text-gray-700">Active</label>
                 </div>
 
-                <!-- Footer: Order + Status + Remove -->
                 <div class="flex items-center justify-between mt-3 text-sm">
 
                   <span class="text-gray-500">Order: {{ i + 1 }}</span>
@@ -133,7 +143,6 @@
         }
       </div>
 
-      <!-- SAVE BUTTON -->
       <button
         class="w-full px-6 py-3 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
         [disabled]="disableSaveButton()"

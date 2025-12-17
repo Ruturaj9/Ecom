@@ -1,10 +1,9 @@
-// src/app/pages/admin/admin-layout/admin-layout.component.ts
 import { Component, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { AuthService } from '../../../services/auth.service';
+import { AuthService } from '../../../services/auth.service';  // <-- Correct path
 
 @Component({
   selector: 'app-admin-layout',

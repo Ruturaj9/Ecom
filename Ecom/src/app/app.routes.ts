@@ -1,40 +1,25 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { AdminGuard } from './guards/admin.guard';
 import { AdminLayoutComponent } from './pages/admin/admin-layout/admin-layout.component';
 
-/**
- * Optimized, production-ready routing configuration.
- *
- * ✅ Core logic preserved exactly
- * ✅ Theme untouched
- * ✅ Lazy loading optimized
- * ✅ Performance improved (standalone + OnPush-friendly)
- * ✅ Admin area isolated for faster initial load
- * ✅ Guard behavior preserved
- * ✅ Cleaner and more scalable structure
- */
-
 export const routes: Routes = [
-  // -------------------------
+  // ----------------------------------
   // PUBLIC HOME ROUTE
-  // -------------------------
+  // ----------------------------------
   {
     path: '',
     component: HomeComponent,
     pathMatch: 'full',
   },
 
-  // -------------------------
+  // ----------------------------------
   // PUBLIC ROUTES (Lazy Loaded)
-  // -------------------------
+  // ----------------------------------
   {
     path: 'products',
     loadComponent: () =>
-      import('./pages/products/products.component').then(
-        (m) => m.ProductsComponent
-      ),
+      import('./pages/products/products.component').then((m) => m.ProductsComponent),
   },
 
   {
@@ -45,22 +30,44 @@ export const routes: Routes = [
       ),
   },
 
-  {
-    path: 'cart',
-    loadComponent: () =>
-      import('./pages/cart/cart.component').then((m) => m.CartComponent),
-  },
-
+  // -------------------------
+  // AUTH ROUTES
+  // -------------------------
   {
     path: 'login',
-    loadComponent: () =>
-      import('./pages/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('./pages/login/login.component').then((m) => m.LoginComponent),
   },
 
   {
-    path: 'about',
+    path: 'register',
     loadComponent: () =>
-      import('./pages/about/about.component').then((m) => m.AboutComponent),
+      import('./pages/login/register.component').then((m) => m.RegisterComponent),
+  },
+
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./pages/login/forgot-password.component').then((m) => m.ForgotPasswordComponent),
+  },
+
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./pages/login/reset-password.component').then((m) => m.ResetPasswordComponent),
+  },
+
+  {
+    path: 'reset-password/:token',
+    loadComponent: () =>
+      import('./pages/login/reset-password.component').then((m) => m.ResetPasswordComponent),
+  },
+
+  // ----------------------------------
+  // OTHER PUBLIC PAGES
+  // ----------------------------------
+  {
+    path: 'about',
+    loadComponent: () => import('./pages/about/about.component').then((m) => m.AboutComponent),
   },
 
   {
@@ -71,9 +78,9 @@ export const routes: Routes = [
       ),
   },
 
-  // -------------------------
-  // ADMIN SECTION (Lazy Loaded Children)
-  // -------------------------
+  // ----------------------------------
+  // ADMIN SECTION
+  // ----------------------------------
   {
     path: 'admin',
     component: AdminLayoutComponent,
@@ -93,6 +100,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/admin/product-list/product-list.component').then(
             (m) => m.ProductListComponent
+          ),
+        runGuardsAndResolvers: 'always',
+      },
+
+      // ⭐ EDIT PRODUCT ROUTE
+      {
+        path: 'products/:id/edit',
+        loadComponent: () =>
+          import('./pages/admin/product-edit/product-edit.component').then(
+            (m) => m.ProductEditComponent
           ),
         runGuardsAndResolvers: 'always',
       },
@@ -125,10 +142,25 @@ export const routes: Routes = [
       },
 
       {
+        path: 'video-sliders',
+        loadComponent: () =>
+          import('./pages/admin/video-slider/video-slider.component').then(
+            (m) => m.VideoSliderAdminComponent
+          ),
+        runGuardsAndResolvers: 'always',
+      },
+
+      {
         path: 'logs',
         loadComponent: () =>
-          import('./pages/admin/audit-logs/audit-logs.component').then(
-            (m) => m.AuditLogsComponent
+          import('./pages/admin/audit-logs/audit-logs.component').then((m) => m.AuditLogsComponent),
+        runGuardsAndResolvers: 'always',
+      },
+      {
+        path: 'video-upload',
+        loadComponent: () =>
+          import('./pages/admin/video-slider-uploader/video-slider-uploader.component').then(
+            (m) => m.VideoSliderUploaderComponent
           ),
         runGuardsAndResolvers: 'always',
       },
@@ -144,9 +176,9 @@ export const routes: Routes = [
     ],
   },
 
-  // -------------------------
-  // WILDCARD — MUST REMAIN LAST
-  // -------------------------
+  // ----------------------------------
+  // WILDCARD ROUTE
+  // ----------------------------------
   {
     path: '**',
     redirectTo: '',

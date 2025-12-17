@@ -11,11 +11,8 @@
         <img src="logo2.jpeg" class="h-11 w-auto object-contain hidden md:block" alt="Company Logo" />
 
         <div class="hidden lg:block leading-tight">
-          <div class="text-sm font-semibold text-neutral-700">
-            Sahasya Farmer's Produce Pvt Ltd
-          </div>
-          <div class="text-base font-extrabold text-emerald-700 tracking-tight">
-            Himalaya Agro
+          <div class="text-base font-bold text-emerald-700 tracking-tight">
+            Himalaya Agro & Sahasya Farmer's Produce Pvt Ltd
           </div>
         </div>
       </a>
@@ -25,6 +22,9 @@
         <a routerLink="/" class="nav-link">Home</a>
 
         <button (click)="navigateWithFragment('/about','about')" class="nav-link">About</button>
+
+        <!-- ⭐ NEW: PRODUCTS SECTION -->
+        <a routerLink="/products" class="nav-link">Products</a>
 
         <button (click)="navigateWithFragment('/about','services')" class="nav-link">Services</button>
 
@@ -37,7 +37,7 @@
       <div class="flex items-center gap-4">
 
         <!-- CART -->
-        <a routerLink="/cart" class="relative hover:text-emerald-600 transition">
+        <!-- <a routerLink="/cart" class="relative hover:text-emerald-600 transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-neutral-700" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -50,10 +50,14 @@
               {{ cartCount }}
             </span>
           }
-        </a>
+        </a> -->
 
-        <!-- ACCOUNT -->
-        <button class="p-2 rounded-full border border-neutral-300 text-neutral-700 hover:bg-emerald-50 transition">
+        <!-- ACCOUNT - ⭐ NOW GOES TO LOGIN -->
+        <button
+          class="p-2 rounded-full border border-neutral-300 text-neutral-700 hover:bg-emerald-50 transition"
+          (click)="goToLogin()"
+          title="Login"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M5.121 17.804A9 9 0 1118.878 6.196M12 14a4 4 0 110-8 4 4 0 010 8zm0 0c-4.418 0-8 2.015-8 4.5V21h16v-2.5c0-2.485-3.582-4.5-8-4.5z" />
@@ -129,6 +133,9 @@
       <a routerLink="/" (click)="toggleMobile()" class="mobile-link">Home</a>
 
       <button (click)="navigateWithFragment('/about','about')" class="mobile-link">About</button>
+
+      <!-- ⭐ NEW: PRODUCTS FOR MOBILE -->
+      <a routerLink="/products" (click)="toggleMobile()" class="mobile-link">Products</a>
 
       <button (click)="navigateWithFragment('/about','services')" class="mobile-link">Services</button>
 

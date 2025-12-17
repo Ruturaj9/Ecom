@@ -1,9 +1,8 @@
 <div class="min-h-screen flex bg-gray-100">
-
   <!-- SIDEBAR -->
   <aside
-    class="w-64 bg-gray-900 text-gray-200 flex flex-col border-r border-gray-800 sticky top-0 h-screen">
-
+    class="w-64 bg-gray-900 text-gray-200 flex flex-col border-r border-gray-800 sticky top-0 h-screen"
+  >
     <!-- LOGO / HEADER -->
     <div class="p-5 border-b border-gray-800">
       <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -14,73 +13,92 @@
 
     <!-- MENU -->
     <nav class="flex-1 p-4 space-y-1 text-gray-300 text-sm">
-
       <a
         routerLink="/admin"
         routerLinkActive="bg-gray-800 text-white font-semibold"
         [routerLinkActiveOptions]="{ exact: true }"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer">
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer"
+      >
         <span>🏠</span> Dashboard Home
       </a>
 
       <a
         routerLink="/admin/upload"
         routerLinkActive="bg-gray-800 text-white font-semibold"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer">
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer"
+      >
         <span>📦</span> Upload Product
       </a>
 
       <a
         routerLink="/admin/slider-upload"
         routerLinkActive="bg-gray-800 text-white font-semibold"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer">
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer"
+      >
         <span>🖼️</span> Upload Slider
+      </a>
+
+      <a
+        routerLink="/admin/video-upload"
+        routerLinkActive="bg-gray-800 text-white font-semibold"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer">
+        <span>🎥</span> Upload Video
       </a>
 
       <a
         routerLink="/admin/products"
         routerLinkActive="bg-gray-800 text-white font-semibold"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer">
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer"
+      >
         <span>🗂️</span> Manage Products
       </a>
 
       <a
         routerLink="/admin/sliders"
         routerLinkActive="bg-gray-800 text-white font-semibold"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer">
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer"
+      >
         <span>🎞️</span> Manage Sliders
+      </a>
+
+      <a
+        routerLink="/admin/video-sliders"
+        routerLinkActive="bg-gray-800 text-white font-semibold"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer"
+      >
+        <span>🎥</span> Manage Video Sliders
       </a>
 
       <a
         routerLink="/admin/logs"
         routerLinkActive="bg-gray-800 text-white font-semibold"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer">
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer"
+      >
         <span>📜</span> Audit Logs
       </a>
 
       <a
         routerLink="/admin/messages"
         routerLinkActive="bg-gray-800 text-white font-semibold"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer">
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-800 hover:text-white cursor-pointer"
+      >
         <span>✉️</span> Contact Messages
       </a>
-
     </nav>
 
     <!-- LOGOUT -->
     <div class="p-4 border-t border-gray-800">
       <button
         (click)="logout()"
-        class="w-full px-3 py-2 bg-red-600 rounded-lg hover:bg-red-700 text-white text-sm font-medium transition">
+        class="w-full px-3 py-2 bg-red-600 rounded-lg hover:bg-red-700 text-white text-sm font-medium transition"
+      >
         Logout
       </button>
     </div>
-
   </aside>
 
   <!-- MAIN CONTENT -->
   <main class="flex-1 p-6 overflow-y-auto">
     <router-outlet (activate)="onActivate($event)"></router-outlet>
   </main>
-
 </div>

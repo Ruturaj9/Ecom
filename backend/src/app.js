@@ -12,13 +12,16 @@ const morgan = require('morgan');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const sliderRoutes = require('./routes/slider');
+const videoSliderRoutes = require('./routes/videoSlider');
 const contactRoutes = require('./routes/contact');
+
 const adminProducts = require('./routes/admin/products');
 const adminLogs = require('./routes/admin/logs');
 const adminCategories = require('./routes/admin/categories');
 const adminUpload = require('./routes/admin/upload');
 const adminProductImages = require('./routes/admin/productImages');
 const adminSlider = require('./routes/admin/slider');
+const adminVideoSlider = require('./routes/admin/videoSlider'); // VIDEO UPLOAD ROUTES
 const adminContactMessages = require('./routes/admin/contactMessages');
 const adminStats = require('./routes/admin/stats');
 
@@ -35,25 +38,18 @@ const app = express();
    GLOBAL MIDDLEWARE
 ------------------------------------------------------- */
 
-// Security headers
 app.use(helmet());
-
-// Compression for faster responses
 app.use(compression());
 
-// Request body limits
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// Cookies
 app.use(cookieParser());
 
-// Structured request logs (only in dev)
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-// CORS for Angular frontend
 app.use(
   cors({
     origin: 'http://localhost:4200',
@@ -67,7 +63,7 @@ app.use(
 
 const csrfProtection = csurf({
   cookie: {
-    httpOnly: false, // preserving your logic
+    httpOnly: false,
     sameSite: 'lax',
   },
 });
@@ -101,6 +97,7 @@ app.get('/auth/csrf-token', csrfProtection, (req, res) => {
 app.use('/auth', rateLimiter, authRoutes(csrfProtection));
 app.use('/products', productRoutes);
 app.use('/sliders', sliderRoutes);
+app.use('/videos', videoSliderRoutes);
 app.use('/contact', contactRoutes);
 
 /* ------------------------------------------------------
@@ -113,14 +110,22 @@ app.use('/admin/categories', adminCategories);
 app.use('/admin/upload', adminUpload);
 app.use('/admin/products/upload', adminProductImages);
 app.use('/admin/slider', requireAdmin(['admin']), adminSlider);
+
+/**
+ * ✅ FIXED
+ * This exposes:
+ * POST /admin/video-upload
+ * POST /admin/video-sliders (metadata)
+ */
+app.use('/admin', requireAdmin(['admin']), adminVideoSlider);
+
 app.use('/admin/contact-messages', adminContactMessages);
 app.use('/admin/stats', requireAdmin(['admin']), adminStats);
 
 /* ------------------------------------------------------
-   TEST ENDPOINTS (Preserved)
+   TEST ENDPOINTS
 ------------------------------------------------------- */
 
-// Root welcome route
 app.get('/', (req, res) => {
   res.json({
     status: 'Backend running',
@@ -128,7 +133,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Debug product insertion
 app.post('/test-insert-product', async (req, res) => {
   try {
     const product = await Product.create({
@@ -146,7 +150,6 @@ app.post('/test-insert-product', async (req, res) => {
   }
 });
 
-// Admin protected test
 app.get('/admin/test', requireAdmin(), (req, res) => {
   res.json({
     message: 'Admin access verified',

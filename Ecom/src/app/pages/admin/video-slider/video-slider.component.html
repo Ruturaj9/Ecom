@@ -1,0 +1,96 @@
+<div class="max-w-7xl mx-auto px-6 py-6">
+
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold">Video Sliders</h2>
+    <div class="text-sm text-gray-600">
+      Page {{ page }} / {{ totalPages }}
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="py-20 text-center text-gray-500 animate-pulse">
+      Loading videos…
+    </div>
+  }
+
+  @if (error()) {
+    <div class="py-20 text-center text-red-600">
+      {{ error() }}
+    </div>
+  }
+
+  @if (videos().length > 0) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      @for (v of videos(); track v._id) {
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+
+          <!-- VIDEO PREVIEW -->
+          @if (v.videoUrl?.desktop) {
+            <video
+              class="w-full h-48 object-cover bg-black"
+              muted
+              controls
+              preload="metadata"
+            >
+              <source [src]="v.videoUrl.desktop" type="video/mp4" />
+            </video>
+          }
+
+          <!-- META -->
+          <div class="p-4">
+            <h3 class="font-semibold text-sm line-clamp-1">
+              {{ v.title || 'Untitled Video' }}
+            </h3>
+
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2">
+              {{ v.subtitle || '—' }}
+            </p>
+
+            <div class="flex items-center justify-between mt-4">
+              <button
+                (click)="toggleActive(v)"
+                class="text-xs px-3 py-1 rounded-full transition"
+                [class.bg-green-100]="v.active"
+                [class.text-green-700]="v.active"
+                [class.bg-gray-200]="!v.active"
+                [class.text-gray-600]="!v.active"
+              >
+                {{ v.active ? 'Active' : 'Inactive' }}
+              </button>
+
+              <button
+                (click)="delete(v._id)"
+                class="text-xs text-red-600 hover:underline"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+
+        </div>
+      }
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="flex justify-center gap-3 mt-8">
+      <button
+        (click)="prevPage()"
+        [disabled]="page <= 1"
+        class="px-4 py-1 border rounded disabled:opacity-50"
+      >
+        Prev
+      </button>
+
+      <button
+        (click)="nextPage()"
+        [disabled]="page >= totalPages"
+        class="px-4 py-1 border rounded disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  }
+
+</div>
